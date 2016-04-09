@@ -39,6 +39,7 @@ type mconfig struct {
 	DecryptionJSAddress string
 }
 
+//读取配置文件
 func configSet() {
 	var m mconfig
 	fi, err := os.Open("config.json")
@@ -176,13 +177,20 @@ func getScrent(url string) {
 		go downloadFiles(strFileServerPath+strPath+s, index+1, ch)
 	}
 
-	for i := 0; i < len(imgpaths); i++ {
+	// for i := 0; i < len(imgpaths); i++ {
 
-		tempIndex := <-ch
-		fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
+	// 	tempIndex := <-ch
+	// 	fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
 
-	}
-	close(ch)
+	// }
+    for i:= range ch{
+        fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(i) + "页，下载完成")
+    }
+    
+    //当阻塞全部结束后将chan关闭，然而这句话会导致后续的数据无法下载的情况发生
+	// if len(ch) == 0 {
+	// 	close(ch)
+	// }
 
 	getNextUrls()
 }
