@@ -5,24 +5,14 @@ import (
     "fmt"
 )
  
-func run() {
-    cmd := exec.Command("/bin/sh", "-c 3", "ping 127.0.0.1")
-    bStr, err := cmd.Output()
-    if err != nil {
-        panic(err.Error())
-    }
- 
-    if err := cmd.Start(); err != nil {
-        panic(err.Error())
-    }
- 
-    if err := cmd.Wait(); err != nil {
-        panic(err.Error())
-    }
-    
-    fmt.Println(string(bStr))
-}
- 
 func main() {
-    run()
+    // cmd := exec.Command("ls") //查看当前目录下的文件
+    
+    cmd := exec.Command("dig","haosou.com","+short")
+    
+    out, err := cmd.CombinedOutput()
+    if err != nil {  
+        fmt.Println(err)  
+    }  
+    fmt.Println(string(out))  
 }
