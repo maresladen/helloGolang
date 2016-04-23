@@ -173,7 +173,7 @@ func getScrent(url string) {
 	}
 	ch := make(chan int, chanlength)
 	for index, s := range imgpaths {
-
+        ch <- index
 		go downloadFiles(strFileServerPath+strPath+s, index+1, ch)
 	}
 
@@ -183,14 +183,16 @@ func getScrent(url string) {
 	// 	fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
 
 	// }
-    for i:= range ch{
-        fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(i) + "页，下载完成")
-    }
     
+        
     //当阻塞全部结束后将chan关闭，然而这句话会导致后续的数据无法下载的情况发生
-	// if len(ch) == 0 {
-	// 	close(ch)
-	// }
+    // for i:= range ch{
+    //     fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(i) + "页，下载完成")
+    // }
+
+	if len(ch) == 0 {
+		close(ch)
+	}
 
 	getNextUrls()
 }
@@ -224,8 +226,8 @@ func downloadFiles(urls string, index int, ch chan int) {
 	file, _ := os.Create(mPath + "/" + comicFPath + "/" + strconv.Itoa(index) + ".jpg")
 	defer file.Close()
 	io.Copy(file, res.Body)
-	ch <- index
-
+    <- ch
+    fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(index) + "页，下载完成")
 }
 
 //运行js方法,用汗汗的加密方式得到真正的图片地址
