@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -44,7 +43,7 @@ func configSet() {
 	var m mconfig
 	fi, err := os.Open("config.json")
 	if err != nil {
-		fmt.Println("config file read error...")
+		writelog(err,"get config json data wrong")
 	} else {
 		temp, _ := ioutil.ReadAll(fi)
 		json.Unmarshal(temp, &m)
@@ -60,9 +59,12 @@ func readForGetURL(txtPath string) string {
 	result := ""
 	fi, err := os.Open(txtPath)
 	if err != nil {
-		fmt.Println("呃...")
+		writelog(err,"open config json wrong")
 	} else {
-		temp, _ := ioutil.ReadAll(fi)
+		temp, err1 := ioutil.ReadAll(fi)
+		if err1 != nil {
+			writelog(err1,"rad config json wrong")
+		}
 		result = string(temp)
 	}
 	return result
@@ -79,11 +81,11 @@ func createFloder(fName string) {
 func getFileServerAdd(s string) string {
 	res, err := http.Get(s)
 	if err != nil {
-		fmt.Println("html get error")
+		writelog(err,"get httpUrl Data wrong")
 	}
 	body, err := ioutil.ReadAll(res.Body) //转换byte数组
 	if err != nil {
-		fmt.Println("html read error")
+		writelog(err,"read post htmlData wrong")
 	}
 	defer res.Body.Close()
 	//io.Copy(os.Stdout, res.Body)//写到输出流，
@@ -92,7 +94,13 @@ func getFileServerAdd(s string) string {
 	vm := otto.New()
 	vm.Run(bodystr)
 	value, err := vm.Get("sDS")
-	tempStr, _ := value.ToString()
+	if err != nil {
+		writelog(err,"vm run js code wrong")
+	}
+	tempStr, err := value.ToString()
+	if err != nil {
+		writelog(err,"vm run js value2string wrong")
+	}
 	temps := strings.Split(tempStr, "|")
 	return temps[1]
 }
@@ -122,11 +130,15 @@ func getScrent(url string) {
 
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		log.Fatal(err)
+		writelog(err,"goquery init wrong")
 	}
 	if len(mPath) <= 0 {
 		mPath = doc.Find("#spt1").Text()
-		execDirAbsPath, _ := os.Getwd()
+		execDirAbsPath, err := os.Getwd()
+			if err != nil {
+		writelog(err,"execDirasbsPath get data wrong")
+	}
+		
 		mPath = execDirAbsPath + "/" + mPath
 		createFloder(mPath)
 	}
@@ -135,7 +147,10 @@ func getScrent(url string) {
 	strComicID, _ = doc.Find("#hdInfoID").Attr("value")
 	strVolID, _ = doc.Find("#hdID").Attr("value")
 
-	bodystr, _ := doc.Html()
+	bodystr, err := doc.Html()
+	if err != nil {
+		writelog(err,"get htmldata wrong")
+	}
 
 	strFiles := GetBetweenStr(bodystr, `sFiles="`, `";var sPath`, len(`sFiles="`))
 	strPath = GetBetweenStr(bodystr, `var sPath="`, `";</script>`, len(`var sPath="`))
@@ -161,37 +176,26 @@ func getScrent(url string) {
 
 	imgpaths, err := runJSGetAddress(strFiles, runJS)
 	if err != nil {
-		fmt.Println("js explain error")
+		writelog(err,"run js wrong")
 	}
 
 	createFloder(mPath + "/" + comicFPath)
 	var chanlength int
-	if len(imgpaths) > 30 {
-		chanlength = 30
+	if len(imgpaths) > 20 {
+		chanlength = 20
 	} else {
 		chanlength = len(imgpaths)
 	}
 	ch := make(chan int, chanlength)
 	for index, s := range imgpaths {
-        ch <- index
-		go downloadFiles(strFileServerPath+strPath+s, index+1, ch)
+		tempIndex := index + 1
+
+		go downloadFiles(strFileServerPath+strPath+s, tempIndex, ch)
 	}
 
-	// for i := 0; i < len(imgpaths); i++ {
-
-	// 	tempIndex := <-ch
-	// 	fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
-
-	// }
-    
-        
-    //当阻塞全部结束后将chan关闭，然而这句话会导致后续的数据无法下载的情况发生
-    // for i:= range ch{
-    //     fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(i) + "页，下载完成")
-    // }
-
-	if len(ch) == 0 {
-		close(ch)
+	for i := 0; i < len(imgpaths); i++ {
+		tempIndex := <-ch
+		fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
 	}
 
 	getNextUrls()
@@ -202,7 +206,7 @@ func getNextUrls() {
 	strNextURL := hostbase + "/app/getNextVolUrl.aspx?ComicID=" + strComicID + "&VolID=" + strVolID + "&t=N"
 	res, err := http.Get(strNextURL)
 	if err != nil {
-		fmt.Println("url get error")
+		writelog(err,"url get worng")
 	}
 	body, err := ioutil.ReadAll(res.Body) //转换byte数组
 	if err != nil {
@@ -211,11 +215,11 @@ func getNextUrls() {
 	defer res.Body.Close()
 	//io.Copy(os.Stdout, res.Body)//写到输出流，
 	bodystr := string(body)
-	if strings.HasPrefix(bodystr, "Err_没有") {
-		fmt.Println("下载完成")
-		return
-	} else {
+
+	if !strings.HasPrefix(bodystr, "Err_没有") {
 		getScrent(bodystr)
+	} else {
+		fmt.Println("下载完成")
 	}
 }
 
@@ -224,10 +228,11 @@ func downloadFiles(urls string, index int, ch chan int) {
 	res, _ := http.Get(urls)
 	defer res.Body.Close()
 	file, _ := os.Create(mPath + "/" + comicFPath + "/" + strconv.Itoa(index) + ".jpg")
+
 	defer file.Close()
 	io.Copy(file, res.Body)
-    <- ch
-    fmt.Println("第" + comicFPath + ",第"+strconv.Itoa(index) + "页，下载完成")
+
+	ch <- index
 }
 
 //运行js方法,用汗汗的加密方式得到真正的图片地址
@@ -302,4 +307,27 @@ func Substr(str string, start, length int) string {
 	}
 
 	return string(rs[start:end])
+}
+
+func writelog(err error,strDefine string) {
+	if checkFileIsExist("errlog") {
+		file, _ := os.OpenFile("errlog", os.O_APPEND, 0666)
+		defer file.Close()
+		io.WriteString(file, err.Error())
+	} else {
+		file, _ := os.Create("error")
+
+		defer file.Close()
+
+		file.WriteString(err.Error() +"  |  "+ strDefine + "\n\r")
+	}
+
+}
+
+func checkFileIsExist(filename string) bool {
+	var exist = true
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		exist = false
+	}
+	return exist
 }
