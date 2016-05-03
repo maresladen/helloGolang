@@ -1,334 +1,204 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
-	"strconv"
 	"strings"
+    "strconv"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/robertkrimen/otto"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-var strFileServerPath, strPath, strComicID, strVolID, hostbase, comicFPath, importURL, mPath, strEndURL, strPorN string
+type Argjson struct {
+	Uin        string
+	Key        string
+	Biz        string
+	PassTicket string
+	FormMsgID  string
+}
 
-var downloadOver bool
+type Wxjson struct {
+	Ret              int64
+	Errmsg           string
+	General_msg_list string
+	Bizuin_code      string
+	Uin_code         string
+	Key              string
+	Is_friend        int64
+	Is_continue      int64
+	Count            int64
+}
 
-// 文件存放服务器地址
-// "http://www.hhcool.com/script/ds.js"
+type General_msg_json struct {
+	List []*Jlist
+}
+
+type Jlist struct {
+	Comm_msg_info      *Comm_msg_json
+	App_msg_ext_info   *App_msg_ext_json
+	Image_msg_ext_info *Image_msg_ext_Json
+}
+
+type Comm_msg_json struct {
+	Id       int64
+	Type     int64
+	Datetime int64
+	Fakeid   string
+	Status   int64
+	Content  string
+}
+
+type Image_msg_ext_Json struct {
+	Length  int64
+	Fileid  int64
+	Mediaid int64
+}
+
+type App_msg_ext_json struct {
+	Title                   string
+	Digest                  string
+	Content                 string
+	Fileid                  int64
+	Content_url             string
+	Source_url              string
+	Cover                   string
+	Subtype                 int64
+	Is_multi                int64
+	Multi_app_msg_item_list []string
+	Author                  string
+}
+
+var msgID string
+var existSQLID int64
 
 func main() {
-	configSet()
-	getScrent(importURL)
+
+	
+	db, err := sql.Open("mysql", "root:miao0308@/blogDB?charset=utf8")
+	if err !=nil{
+		fmt.Println(err)
+	}
+	
+	rows, err1 := db.Query("select max(articleid) aa from wxTable")
+		if err1 !=nil{
+		fmt.Println(err)
+	}
+    for rows.Next(){
+		rows.Scan(&existSQLID)
+	}
+
+	ar, result := configSet()
+	if !result {
+		fmt.Println("explian config error")
+	}
+
+	
+    msgID = ar.FormMsgID
+
+	for i := 0; i < 100; i++ {
+		if msgID == "" {
+			break
+		}
+        // fmt.Println(msgID)
+		data := HTMLCreateGetJSON(&ar)
+        if data == nil{
+            break
+        }
+		msgID = getJSONData(data, &ar)
+        if msgID == ""{
+            break
+        } 
+	}
+
 }
 
-type mconfig struct {
-	ComicURL            string
-	DecryptionJSAddress string
-	EndURL              string
-	PorN                string
-}
-
-//读取配置文件
-func configSet() {
-	var m mconfig
+func configSet() (ar Argjson, result bool) {
+	result = true
 	fi, err := os.Open("config.json")
 	if err != nil {
-		writelog(err, "get config json data wrong")
+		fmt.Println("no config file")
+		result = false
 	} else {
 		temp, _ := ioutil.ReadAll(fi)
-		json.Unmarshal(temp, &m)
-		importURL = m.ComicURL
-		strEndURL = m.EndURL
-		strPorN = m.PorN
-		hostbase = getHostName(m.ComicURL)
-		strFileServerPath = getFileServerAdd(m.DecryptionJSAddress)
-	}
-}
-
-func readForGetURL(txtPath string) string {
-
-	result := ""
-	fi, err := os.Open(txtPath)
-	if err != nil {
-		writelog(err, "open config json wrong")
-	} else {
-		temp, err1 := ioutil.ReadAll(fi)
-		if err1 != nil {
-			writelog(err1, "rad config json wrong")
-		}
-		result = string(temp)
-	}
-	return result
-}
-
-func createFloder(fName string) {
-	err := os.Chdir(fName)
-	if err != nil {
-		os.Mkdir(fName, 0777)
-	}
-}
-
-//获取文件存放地址
-func getFileServerAdd(s string) string {
-	res, err := http.Get(s)
-	if err != nil {
-		writelog(err, "get httpUrl Data wrong")
-	}
-	body, err := ioutil.ReadAll(res.Body) //转换byte数组
-	if err != nil {
-		writelog(err, "read post htmlData wrong")
-	}
-	defer res.Body.Close()
-	//io.Copy(os.Stdout, res.Body)//写到输出流，
-	bodystr := string(body)
-
-	vm := otto.New()
-	vm.Run(bodystr)
-	value, err := vm.Get("sDS")
-	if err != nil {
-		writelog(err, "vm run js code wrong")
-	}
-	tempStr, err := value.ToString()
-	if err != nil {
-		writelog(err, "vm run js value2string wrong")
-	}
-	temps := strings.Split(tempStr, "|")
-	return temps[1]
-}
-
-//用于返回host网址
-func getHostName(s string) string {
-	if strings.Contains(s, "https") {
-		return GetStrBeginWithStart(s, "https://", "/")
-	}
-	return GetStrBeginWithStart(s, "http://", "/")
-}
-
-//主方法
-func getScrent(url string) {
-
-	// res, err := http.Get(urls)
-	// if err != nil {
-	// 	fmt.Println("get错误")
-	// }
-	// body, err := ioutil.ReadAll(res.Body) //转换byte数组
-	// if err != nil {
-	// 	fmt.Println("read错误")
-	// }
-	// defer res.Body.Close()
-	// //io.Copy(os.Stdout, res.Body)//写到输出流，
-	// bodystr := string(body)
-
-	doc, err := goquery.NewDocument(url)
-	if err != nil {
-		writelog(err, "goquery init wrong")
-	}
-	if len(mPath) <= 0 {
-		mPath = doc.Find("#spt1").Text()
-		execDirAbsPath, err := os.Getwd()
+		err = json.Unmarshal(temp, &ar)
 		if err != nil {
-			writelog(err, "execDirasbsPath get data wrong")
+			fmt.Println("config explain error")
+			result = false
 		}
-		mPath = execDirAbsPath + "/" + mPath
-		createFloder(mPath)
 	}
-	comicFPath = strings.TrimSpace(strings.Replace(doc.Find("#spt2").Text(), doc.Find("#spt1").Text(), "", 1))
-
-	strComicID, _ = doc.Find("#hdInfoID").Attr("value")
-	strVolID, _ = doc.Find("#hdID").Attr("value")
-
-	bodystr, err := doc.Html()
-	if err != nil {
-		writelog(err, "get htmldata wrong")
-	}
-
-	strFiles := GetBetweenStr(bodystr, `sFiles="`, `";var sPath`, len(`sFiles="`))
-	strPath = GetBetweenStr(bodystr, `var sPath="`, `";</script>`, len(`var sPath="`))
-
-	runJS := `
-    var x = s.substring(s.length-1);
-    var xi="abcdefghijklmnopqrstuvwxyz".indexOf(x)+1;
-    var sk = s.substring(s.length-xi-12,s.length-xi-1);
-    s=s.substring(0,s.length-xi-12);
-    var k=sk.substring(0,sk.length-1);
-    var f=sk.substring(sk.length-1);
-    var k=sk.substring(0,sk.length-1);
-    var f=sk.substring(sk.length-1);
-    for(i=0;i<k.length;i++) {
-        eval("s=s.replace(/"+ k.substring(i,i+1) +"/g,'"+ i +"')");
-    }
-    var ss = s.split(f);
-    s="";
-    for(i=0;i<ss.length;i++) {
-        s+=String.fromCharCode(ss[i]);
-    }
-    `
-
-	imgpaths, err := runJSGetAddress(strFiles, runJS)
-	if err != nil {
-		writelog(err, "run js wrong")
-	}
-
-	createFloder(mPath + "/" + comicFPath)
-	var chanlength int
-	if len(imgpaths) > 20 {
-		chanlength = 20
-	} else {
-		chanlength = len(imgpaths)
-	}
-	ch := make(chan int, chanlength)
-	for index, s := range imgpaths {
-		tempIndex := index + 1
-
-		go downloadFiles(strFileServerPath+strPath+s, tempIndex, ch)
-	}
-
-	for i := 0; i < len(imgpaths); i++ {
-		tempIndex := <-ch
-		fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
-	}
-	if !downloadOver {
-		getNextUrls()
-	}
+	return ar, result
 }
 
-//获得下一集的地址
-func getNextUrls() {
-	strNextURL := hostbase + "/app/getNextVolUrl.aspx?ComicID=" + strComicID + "&VolID=" + strVolID + "&t=" + strPorN
-	res, err := http.Get(strNextURL)
-	if err != nil {
-		writelog(err, "url get worng")
-	}
-	body, err := ioutil.ReadAll(res.Body) //转换byte数组
-	if err != nil {
-		fmt.Println("url read error")
-	}
-	defer res.Body.Close()
-	//io.Copy(os.Stdout, res.Body)//写到输出流，
-	bodystr := string(body)
+//HTMLCreateGetJSON 获取json数据
+func HTMLCreateGetJSON(ar *Argjson) ([]byte) {
 
-	if !strings.HasPrefix(bodystr, "Err_没有") {
-		if bodystr != strEndURL {
-			getScrent(bodystr)
-		} else {
-			downloadOver = true
-			getScrent(bodystr)
+	jsonHTML := `https://mp.weixin.qq.com/mp/getmasssendmsg?__biz=` + ar.Biz + `&uin=` + ar.Uin + `&key=` + ar.Key + `&f=json&frommsgid=` + msgID + `&count=10&uin=` + ar.Uin + `&key=` + ar.Key + `&pass_ticket=` + ar.PassTicket + `&wxtoken=&x5=0`
+
+	// fmt.Println(jsonHTML)
+    
+	doc, err := goquery.NewDocument(jsonHTML)
+	if err != nil {
+		fmt.Println(err)
+        
+	}
+	varbody := doc.Find("body").Text()
+
+	return []byte(varbody)
+}
+
+func getJSONData(doc []byte, ar *Argjson) (msgIDArg string){
+	var txtJSON Wxjson
+	err := json.Unmarshal(doc, &txtJSON)
+	if err != nil {
+		fmt.Println("cuole")
+        return ""
+	}
+
+	var contentJSON General_msg_json
+	err = json.Unmarshal([]byte(txtJSON.General_msg_list), &contentJSON)
+	if err != nil {
+		fmt.Println("cuole2")
+        return ""
+	}
+
+	// ar.FormMsgID = ""
+
+	// fmt.Println("start")
+	for index, jst := range contentJSON.List {
+        
+        
+        // fmt.Println(string(len(contentJSON.List)))
+        msgIDArg =""
+		if jst.Comm_msg_info.Type == 49 {
+			htmlurl := strings.Replace(jst.App_msg_ext_info.Content_url, `amp;`, ``, -1)
+
+			// fmt.Println(htmlurl)
+			
+			if jst.Comm_msg_info.Id == existSQLID{
+				break
+			}
+			
+			jst.App_msg_ext_info.Content_url = htmlurl
+			insertValues(jst.App_msg_ext_info,jst.Comm_msg_info.Id)
+
 		}
-	} else {
-		fmt.Println("下载完成")
+		if index == len(contentJSON.List)-1 {
+			msgIDArg =strconv.FormatInt(jst.Comm_msg_info.Id,10)
+		}
+        
+        
 	}
+    return msgIDArg
 }
 
-//下载图片
-func downloadFiles(urls string, index int, ch chan int) {
-	res, _ := http.Get(urls)
-	defer res.Body.Close()
-	file, _ := os.Create(mPath + "/" + comicFPath + "/" + strconv.Itoa(index) + ".jpg")
+func insertValues(st *App_msg_ext_json,pageID int64) {
+	db, _ := sql.Open("mysql", "root:miao0308@/blogTable?charset=utf8")
+	stmt, _ := db.Prepare("INSERT wxTable SET articleid=?,title=?,url=?")
 
-	defer file.Close()
-	io.Copy(file, res.Body)
-
-	ch <- index
-}
-
-//运行js方法,用汗汗的加密方式得到真正的图片地址
-func runJSGetAddress(s string, js string) ([]string, error) {
-	vm := otto.New()
-	vm.Set("s", s)
-	vm.Run(js)
-	value, err := vm.Get("s")
-	if err != nil {
-		return nil, err
-	}
-	tempStr, _ := value.ToString()
-	return strings.Split(tempStr, "|"), nil
-}
-
-//GetBetweenStr 以起始点和结束点截取字符串
-func GetBetweenStr(str, start, end string, offset int) string {
-	n := strings.Index(str, start) + offset
-	if n == -1 {
-		n = 0
-	}
-	str = string([]byte(str)[n:])
-	m := strings.Index(str, end)
-	if m == -1 {
-		m = len(str)
-	}
-	str = string([]byte(str)[:m])
-	return str
-}
-
-//GetStrBeginWithStart 保留开始字段的剪切
-func GetStrBeginWithStart(str, start, end string) string {
-	n := strings.Index(str, start)
-	if n == -1 {
-		n = 0
-	}
-	str = string([]byte(str)[n+len(start):])
-	m := strings.Index(str, end)
-	if m == -1 {
-		m = len(str)
-	}
-	str = start + string([]byte(str)[:m])
-	return str
-}
-
-//Substr 以起始点和长度截取字符串
-func Substr(str string, start, length int) string {
-	rs := []rune(str)
-	rl := len(rs)
-	end := 0
-
-	if start < 0 {
-		start = rl - 1 + start
-	}
-	end = start + length
-
-	if start > end {
-		start, end = end, start
-	}
-
-	if start < 0 {
-		start = 0
-	}
-	if start > rl {
-		start = rl
-	}
-	if end < 0 {
-		end = 0
-	}
-	if end > rl {
-		end = rl
-	}
-
-	return string(rs[start:end])
-}
-
-func writelog(err error, strDefine string) {
-	if checkFileIsExist("errlog") {
-		file, _ := os.OpenFile("errlog", os.O_APPEND, 0666)
-		defer file.Close()
-		io.WriteString(file, err.Error())
-	} else {
-		file, _ := os.Create("error")
-
-		defer file.Close()
-
-		file.WriteString(err.Error() + "  |  " + strDefine + "\n\r")
-	}
-
-}
-
-func checkFileIsExist(filename string) bool {
-	var exist = true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		exist = false
-	}
-	return exist
+	stmt.Exec(pageID, st.Title, st.Content_url)
+	db.Close()
 }

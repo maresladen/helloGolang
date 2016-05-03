@@ -14,28 +14,23 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-var strFileServerPath string
-var strPath string
-var strComicID string
-var strVolID string
-var hostbase string
-var comicFPath string
-var importURL string
-var mPath string
+var strFileServerPath, strPath, strComicID, strVolID, hostbase, comicFPath, importURL, mPath, strEndURL, strPorN string
 
-//文件存放服务器地址
+var downloadOver bool
+
+// 文件存放服务器地址
 // "http://www.hhcool.com/script/ds.js"
 
 func main() {
-
 	configSet()
-
 	getScrent(importURL)
 }
 
 type mconfig struct {
 	ComicURL            string
 	DecryptionJSAddress string
+	EndURL              string
+	PorN                string
 }
 
 //读取配置文件
@@ -43,14 +38,15 @@ func configSet() {
 	var m mconfig
 	fi, err := os.Open("config.json")
 	if err != nil {
-		writelog(err,"get config json data wrong")
+		writelog(err, "get config json data wrong")
 	} else {
 		temp, _ := ioutil.ReadAll(fi)
 		json.Unmarshal(temp, &m)
 		importURL = m.ComicURL
+		strEndURL = m.EndURL
+		strPorN = m.PorN
 		hostbase = getHostName(m.ComicURL)
 		strFileServerPath = getFileServerAdd(m.DecryptionJSAddress)
-
 	}
 }
 
@@ -59,11 +55,11 @@ func readForGetURL(txtPath string) string {
 	result := ""
 	fi, err := os.Open(txtPath)
 	if err != nil {
-		writelog(err,"open config json wrong")
+		writelog(err, "open config json wrong")
 	} else {
 		temp, err1 := ioutil.ReadAll(fi)
 		if err1 != nil {
-			writelog(err1,"rad config json wrong")
+			writelog(err1, "rad config json wrong")
 		}
 		result = string(temp)
 	}
@@ -81,11 +77,11 @@ func createFloder(fName string) {
 func getFileServerAdd(s string) string {
 	res, err := http.Get(s)
 	if err != nil {
-		writelog(err,"get httpUrl Data wrong")
+		writelog(err, "get httpUrl Data wrong")
 	}
 	body, err := ioutil.ReadAll(res.Body) //转换byte数组
 	if err != nil {
-		writelog(err,"read post htmlData wrong")
+		writelog(err, "read post htmlData wrong")
 	}
 	defer res.Body.Close()
 	//io.Copy(os.Stdout, res.Body)//写到输出流，
@@ -95,11 +91,11 @@ func getFileServerAdd(s string) string {
 	vm.Run(bodystr)
 	value, err := vm.Get("sDS")
 	if err != nil {
-		writelog(err,"vm run js code wrong")
+		writelog(err, "vm run js code wrong")
 	}
 	tempStr, err := value.ToString()
 	if err != nil {
-		writelog(err,"vm run js value2string wrong")
+		writelog(err, "vm run js value2string wrong")
 	}
 	temps := strings.Split(tempStr, "|")
 	return temps[1]
@@ -130,15 +126,14 @@ func getScrent(url string) {
 
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		writelog(err,"goquery init wrong")
+		writelog(err, "goquery init wrong")
 	}
 	if len(mPath) <= 0 {
 		mPath = doc.Find("#spt1").Text()
 		execDirAbsPath, err := os.Getwd()
-			if err != nil {
-		writelog(err,"execDirasbsPath get data wrong")
-	}
-		
+		if err != nil {
+			writelog(err, "execDirasbsPath get data wrong")
+		}
 		mPath = execDirAbsPath + "/" + mPath
 		createFloder(mPath)
 	}
@@ -149,7 +144,7 @@ func getScrent(url string) {
 
 	bodystr, err := doc.Html()
 	if err != nil {
-		writelog(err,"get htmldata wrong")
+		writelog(err, "get htmldata wrong")
 	}
 
 	strFiles := GetBetweenStr(bodystr, `sFiles="`, `";var sPath`, len(`sFiles="`))
@@ -176,7 +171,7 @@ func getScrent(url string) {
 
 	imgpaths, err := runJSGetAddress(strFiles, runJS)
 	if err != nil {
-		writelog(err,"run js wrong")
+		writelog(err, "run js wrong")
 	}
 
 	createFloder(mPath + "/" + comicFPath)
@@ -197,16 +192,17 @@ func getScrent(url string) {
 		tempIndex := <-ch
 		fmt.Println("第" + comicFPath + ",第" + strconv.Itoa(tempIndex) + "页,下载完成")
 	}
-
-	getNextUrls()
+	if !downloadOver {
+		getNextUrls()
+	}
 }
 
 //获得下一集的地址
 func getNextUrls() {
-	strNextURL := hostbase + "/app/getNextVolUrl.aspx?ComicID=" + strComicID + "&VolID=" + strVolID + "&t=N"
+	strNextURL := hostbase + "/app/getNextVolUrl.aspx?ComicID=" + strComicID + "&VolID=" + strVolID + "&t=" + strPorN
 	res, err := http.Get(strNextURL)
 	if err != nil {
-		writelog(err,"url get worng")
+		writelog(err, "url get worng")
 	}
 	body, err := ioutil.ReadAll(res.Body) //转换byte数组
 	if err != nil {
@@ -217,7 +213,12 @@ func getNextUrls() {
 	bodystr := string(body)
 
 	if !strings.HasPrefix(bodystr, "Err_没有") {
-		getScrent(bodystr)
+		if bodystr != strEndURL {
+			getScrent(bodystr)
+		} else {
+			downloadOver = true
+			getScrent(bodystr)
+		}
 	} else {
 		fmt.Println("下载完成")
 	}
@@ -309,7 +310,7 @@ func Substr(str string, start, length int) string {
 	return string(rs[start:end])
 }
 
-func writelog(err error,strDefine string) {
+func writelog(err error, strDefine string) {
 	if checkFileIsExist("errlog") {
 		file, _ := os.OpenFile("errlog", os.O_APPEND, 0666)
 		defer file.Close()
@@ -319,7 +320,7 @@ func writelog(err error,strDefine string) {
 
 		defer file.Close()
 
-		file.WriteString(err.Error() +"  |  "+ strDefine + "\n\r")
+		file.WriteString(err.Error() + "  |  " + strDefine + "\n\r")
 	}
 
 }
