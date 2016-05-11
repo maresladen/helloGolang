@@ -124,10 +124,7 @@ func getScrent(url string) {
 	// //io.Copy(os.Stdout, res.Body)//写到输出流，
 	// bodystr := string(body)
 
-	doc, err := goquery.NewDocument(url)
-	if err != nil {
-		writelog(err, "goquery init wrong")
-	}
+	doc :=threeTimesDoJob(url,1)
 	if len(mPath) <= 0 {
 		mPath = doc.Find("#spt1").Text()
 		execDirAbsPath, err := os.Getwd()
@@ -249,6 +246,19 @@ func runJSGetAddress(s string, js string) ([]string, error) {
 	return strings.Split(tempStr, "|"), nil
 }
 
+func threeTimesDoJob(url string, count int) *goquery.Document {
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		//尝试三次，如果三次都超时，则不管了
+		writelog(err, "goquery init wrong")
+		if count < 4 {
+			doc = threeTimesDoJob(url, count+1)
+		}
+	}
+	return doc
+}
+
 //GetBetweenStr 以起始点和结束点截取字符串
 func GetBetweenStr(str, start, end string, offset int) string {
 	n := strings.Index(str, start) + offset
@@ -316,7 +326,7 @@ func writelog(err error, strDefine string) {
 		defer file.Close()
 		io.WriteString(file, err.Error())
 	} else {
-		file, _ := os.Create("error")
+		file, _ := os.Create("errorlog")
 
 		defer file.Close()
 
