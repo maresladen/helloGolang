@@ -8,11 +8,13 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 type mconfig struct {
 	ProjectPath string
 	DotnetPort  int
+	Branch      string
 }
 
 // gitconfig.json的json格式和内容
@@ -26,18 +28,23 @@ var m mconfig
 func main() {
 	fmt.Println("开始配置读取中...")
 	configSet()
-	fmt.Println("开始文件对比中...")
-	diffout := runCMD(m.ProjectPath, "git", "diff", "develop", "origin/develop", "--stat")
-	if len(diffout) == 0 {
-		return
-	}
 	fmt.Println("开始文件拉取...")
-	pullout := runCMD(m.ProjectPath, "git", "pull", "origin")
-	if len(pullout) == 0 {
-		writelog(nil, "pull error")
+	//拉取远端代码
+	runCMD(m.ProjectPath, "git", "fetch", "origin")
+
+	fmt.Println("开始文件对比中...")
+	diffout := runCMD(m.ProjectPath, "git", "diff", "origin/"+m.Branch, "--stat")
+	if len(diffout) == 0 {
+		fmt.Println("工程没有差异,")
 		return
 	}
-	fmt.Println("开始生成脚本...")
+	fmt.Println("开始文件合并...")
+	mergeout := runCMD(m.ProjectPath, "git", "merge", "origin/"+m.Branch)
+	if len(mergeout) == 0 {
+		writelog(nil, "merge error")
+		return
+	}
+	fmt.Println("开始生成脚本,网站服务将停止...")
 
 	writeScript(strconv.Itoa(m.DotnetPort), m.ProjectPath)
 }
@@ -101,7 +108,12 @@ dotnet run`
 	fmt.Println("开始执行脚本...")
 	err := cmd.Run()
 	if err != nil {
-		writelog(err, "run commod err")
+		if strings.Contains(err.Error(), "exit status 143") {
+			fmt.Println("进程被关闭,请检查服务是否被重新开启")
+		} else {
+
+			writelog(err, "run commod err")
+		}
 	}
 	// }
 }
