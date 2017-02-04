@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 )
 
@@ -88,10 +87,8 @@ dotnet run`
 		if err != nil {
 			writelog(err, "write script file err")
 		}
-		file, _ := exec.LookPath(os.Args[0])
-		path, _ := filepath.Abs(file)
 		cmd := exec.Command("/bin/sh", "./shcmd.sh")
-		cmd.Dir = path
+		cmd.Dir, _ = os.Getwd()
 		err = cmd.Run()
 		if err != nil {
 			writelog(err, "run commod err")
