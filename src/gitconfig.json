@@ -1,3 +1,4 @@
 {
-	"projectPath":"/Users/BetaFun/CodeWork/DotNet/asptest"
+	"ProjectPath":"/Users/BetaFun/CodeWork/DotNet/asptest",
+	"DotnetPort": 5000
 }

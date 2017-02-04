@@ -2,32 +2,45 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 type mconfig struct {
-	projectPath string
+	ProjectPath string
+	DotnetPort  int
 }
 
 var m mconfig
 
 func main() {
+	configSet()
+	diffout := runCMD(m.ProjectPath, "git", "diff", "develop", "origin/develop", "--stat")
+	if len(diffout) == 0 {
+		return
+	}
+	pullout := runCMD(m.ProjectPath, "git", "pull", "origin")
+	if len(pullout) == 0 {
+		writelog(nil, "pull error")
+		return
+	}
 
-	runCMD("git", "diff")
+	writeScript(strconv.Itoa(m.DotnetPort), m.ProjectPath)
 }
 
-func runCMD(name string, args ...string) {
+func runCMD(runPath, name string, args ...string) []byte {
 	cmd := exec.Command(name, args...)
+	cmd.Dir = runPath
 
 	out, err := cmd.CombinedOutput()
+
 	if err != nil {
-		fmt.Println(err)
+		writelog(err, string(out))
 	}
-	fmt.Println(string(out))
+	return out
 }
 
 //读取配置文件
@@ -39,6 +52,41 @@ func configSet() {
 	} else {
 		temp, _ := ioutil.ReadAll(fi)
 		json.Unmarshal(temp, &m)
+	}
+}
+
+func writeScript(port, runPath string) {
+	file, err := os.OpenFile("shcmd.sh", os.O_CREATE|os.O_RDWR, 0775)
+	defer file.Close()
+	if err != nil {
+		writelog(err, "create script file err")
+	} else {
+
+		scmd := `#!/bin/sh
+useport=` + port + `
+testData=""
+for PID in $(lsof -i:$useport |awk '{print $2}'); do
+if [ $PID != "PID" ]; then
+    if [ -z $PID ]; then
+        break;
+        else
+        testData=$PID
+        kill $PID
+    fi
+fi
+done
+cd ` + runPath + `
+dotnet run`
+		//将shell命令写入文件,已不需要,直接执行
+		// _, err = io.WriteString(file, scmd)
+		// if err != nil {
+		// 	writelog(err, "write script file err")
+		// }
+		cmd := exec.Command("/bin/sh", "-c", scmd)
+		err = cmd.Run()
+		if err != nil {
+			writelog(err, "run commod err")
+		}
 	}
 }
 
