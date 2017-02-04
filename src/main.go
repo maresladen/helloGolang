@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 )
 
@@ -62,7 +63,7 @@ func configSet() {
 }
 
 func writeScript(port, runPath string) {
-	file, err := os.OpenFile("shcmd.sh", os.O_CREATE|os.O_RDWR, 0775)
+	file, err := os.OpenFile("shcmd.sh", os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0775)
 	defer file.Close()
 	if err != nil {
 		writelog(err, "create script file err")
@@ -83,12 +84,14 @@ fi
 done
 cd ` + runPath + `
 dotnet run`
-		//将shell命令写入文件,已不需要,直接执行
-		// _, err = io.WriteString(file, scmd)
-		// if err != nil {
-		// 	writelog(err, "write script file err")
-		// }
-		cmd := exec.Command("/bin/sh", "-c", scmd)
+		_, err = io.WriteString(file, scmd)
+		if err != nil {
+			writelog(err, "write script file err")
+		}
+		file, _ := exec.LookPath(os.Args[0])
+		path, _ := filepath.Abs(file)
+		cmd := exec.Command("/bin/sh", "./shcmd.sh")
+		cmd.Dir = path
 		err = cmd.Run()
 		if err != nil {
 			writelog(err, "run commod err")
