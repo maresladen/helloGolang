@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("开始文件对比中...")
 	diffout := runCMD(m.ProjectPath, "git", "diff", "origin/"+m.Branch, "--stat")
 	if len(diffout) == 0 {
-		fmt.Println("工程没有差异,")
+		fmt.Println("工程没有差异,程序退出")
 		return
 	}
 	fmt.Println("开始文件合并...")
@@ -105,7 +105,7 @@ dotnet run`
 	// cmd := exec.Command("/bin/sh", "./shcmd.sh")
 	cmd := exec.Command("/bin/sh", "-c", scmd)
 	cmd.Dir, _ = os.Getwd()
-	fmt.Println("开始执行脚本...")
+	fmt.Println("开始执行脚本,网站将重新启用")
 	err := cmd.Run()
 	if err != nil {
 		if strings.Contains(err.Error(), "exit status 143") {
