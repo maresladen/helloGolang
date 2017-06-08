@@ -1,3 +1,5 @@
+//说明：使用的config文件为gitconfig.json
+//使用的sh命令文件为shcmd.sh
 package main
 
 import (

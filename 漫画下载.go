@@ -1,3 +1,5 @@
+//使用的config文件为config.json
+
 package main
 
 import (
