@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"time"
 )
 
@@ -68,8 +67,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "%v", "不允许的上传类型")
 			return
 		}
-		filename := strconv.FormatInt(time.Now().Unix(), 10) + fileext
-		f, _ := os.OpenFile(Upload_Dir+filename, os.O_CREATE|os.O_WRONLY, 0660)
+		filename := handler.Filename
+		f, _ := os.OpenFile(Upload_Dir+filename, os.O_CREATE|os.O_WRONLY, 0777)
 		_, err = io.Copy(f, file)
 		if err != nil {
 			fmt.Fprintf(w, "%v", "上传失败")
