@@ -1,0 +1,12 @@
+{
+    "EUserName":"guf",
+    "EUserPwd":"123",
+    "EUserToken":"12312321",
+    "EJavaRepoPath":"https://repo.ebaotech.com/",
+    "ENpmRepoPath":"http://repo.ebaotech.com/artifactory/api/npm/auth",
+    "ENpmPath":"http://172.25.10.32:8080/developer/software/node-v6.9.5-x64.msi",
+    "ENpmRegistry":"http://repo.ebaotech.com/artifactory/api/npm/npm-all",
+    "EJavaSVNPAth":"http://svnedgebl.ebaotech.com/svn/unicorn_reference_asset/trunk",
+    "ERainbowSVNPath":"http://svnedgebl.ebaotech.com/svn/unicorn_refrence_asset/branches/v4.3.0/unicorn-asset-ui-2.0",
+    "ECurlPath":"http://172.25.10.32:8080/developer/software/curl-7.40.0.zip"
+}
