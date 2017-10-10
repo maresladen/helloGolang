@@ -1,0 +1,262 @@
+{
+    "FileName": "jy3.txt",
+    "Cloumns": [
+        { "ColumnName": "standard_name",
+            "ColumnIndex": 1,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "vehicle_alias",
+            "ColumnIndex": 2,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "gearbox_type",
+            "ColumnIndex": 3,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "remark",
+            "ColumnIndex": 4,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "seat",
+            "ColumnIndex": 5,
+            "IsAllTextColumn": true,
+            "FieldType":"integer"
+        },
+        {
+            "ColumnName": "company_name",
+            "ColumnIndex": 6,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "family_name",
+            "ColumnIndex": 7,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "brand_name",
+            "ColumnIndex": 8,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "vehicle_class",
+            "ColumnIndex": 9,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "market_date",
+            "ColumnIndex": 10,
+            "IsAllTextColumn": true,
+            "FieldType":"date"
+        },
+        {
+            "ColumnName": "engine_desc",
+            "ColumnIndex": 11,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "year_pattern",
+            "ColumnIndex": 12,
+            "IsAllTextColumn": true,
+            "FieldType":"integer"
+        },
+        {
+            "ColumnName": "group_name",
+            "ColumnIndex": 13,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "new_vehicle_class",
+            "ColumnIndex": 14,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "effluent_standard",
+            "ColumnIndex": 15,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "power_type",
+            "ColumnIndex": 16,
+            "IsAllTextColumn": true,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "vehicle_id",
+            "ColumnIndex": 17,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "rb_code",
+            "ColumnIndex": 18,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "anti_theft",
+            "ColumnIndex": 19,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "abs_flag",
+            "ColumnIndex": 20,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "import_flag",
+            "ColumnIndex": 21,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "vin_code",
+            "ColumnIndex": 22,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "risk_flag",
+            "ColumnIndex": 23,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "stop_flag",
+            "ColumnIndex": 24,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "displacement",
+            "ColumnIndex": 25,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "seat_max",
+            "ColumnIndex": 26,
+            "IsAllTextColumn": false,
+            "FieldType":"integer"
+        },
+        {
+            "ColumnName": "power",
+            "ColumnIndex": 27,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "seat_min",
+            "ColumnIndex": 28,
+            "IsAllTextColumn": false,
+            "FieldType":"integer"
+        },
+        {
+            "ColumnName": "airbag_num",
+            "ColumnIndex": 29,
+            "IsAllTextColumn": false,
+            "FieldType":"integer"
+        },
+        {
+            "ColumnName": "tonnage",
+            "ColumnIndex": 30,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "purchase_price",
+            "ColumnIndex": 31,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "purchase_price_tax",
+            "ColumnIndex": 32,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "kindred_price",
+            "ColumnIndex": 33,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "kindred_price_tax",
+            "ColumnIndex": 34,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "full_weight_max",
+            "ColumnIndex": 35,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "full_weight_min",
+            "ColumnIndex": 36,
+            "IsAllTextColumn": false,
+            "FieldType":"long"
+        },
+        {
+            "ColumnName": "batholith",
+            "ColumnIndex": 37,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "syx_classname",
+            "ColumnIndex": 38,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "jqx_classname",
+            "ColumnIndex": 39,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "cartype",
+            "ColumnIndex": 40,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "standardname_2",
+            "ColumnIndex": 41,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        },
+        {
+            "ColumnName": "hfname",
+            "ColumnIndex": 42,
+            "IsAllTextColumn": false,
+            "FieldType":"text"
+        }
+    ],
+    "SliptFileRowCount": 500,
+    "SubmitURL": "http://localhost:9200",
+	"EsIndex" :"test",
+    "EsType" :"testBulk",
+    "LoginUser":"elastic",
+    "LoginPWD":"changeme"
+}
