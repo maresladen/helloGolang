@@ -1,0 +1,133 @@
+{
+    "properties": {
+        "standard_name": {
+            "type": "keyword"
+        },
+        "vehicle_alias": {
+            "type": "keyword"
+        },
+        "gearbox_type": {
+            "type": "keyword"
+        },
+        "remark": {
+            "type": "keyword"
+        },
+        "seat": {
+            "type": "keyword"
+        },
+        "company_name": {
+            "type": "keyword"
+        },
+        "family_name": {
+            "type": "keyword"
+        },
+        "brand_name": {
+            "type": "keyword"
+        },
+        "vehicle_class": {
+            "type": "keyword"
+        },
+        "market_date": {
+            "type": "keyword"
+        },
+        "engine_desc": {
+            "type": "keyword"
+        },
+        "year_pattern": {
+            "type": "integer"
+        },
+        "group_name": {
+            "type": "keyword"
+        },
+        "new_vehicle_class": {
+            "type": "keyword"
+        },
+        "effluent_standard": {
+            "type": "keyword"
+        },
+        "power_type": {
+            "type": "keyword"
+        },
+        "vehicle_id": {
+            "type": "keyword"
+        },
+        "rb_code": {
+            "type": "keyword"
+        },
+        "anti_theft": {
+            "type": "keyword"
+        },
+        "abs_flag": {
+            "type": "keyword"
+        },
+        "import_flag": {
+            "type": "keyword"
+        },
+        "vin_code": {
+            "type": "keyword"
+        },
+        "risk_flag": {
+            "type": "keyword"
+        },
+        "stop_flag": {
+            "type": "keyword"
+        },
+        "displacement": {
+            "type": "keyword"
+        },
+        "seat_max": {
+            "type": "integer"
+        },
+        "power": {
+            "type": "keyword"
+        },
+        "seat_min": {
+            "type": "integer"
+        },
+        "airbag_num": {
+            "type": "integer"
+        },
+        "tonnage": {
+            "type": "keyword"
+        },
+        "purchase_price": {
+            "type": "float"
+        },
+        "purchase_price_tax": {
+            "type": "float"
+        },
+        "kindred_price": {
+            "type": "float"
+        },
+        "kindred_price_tax": {
+            "type": "float"
+        },
+        "full_weight_max": {
+            "type": "float"
+        },
+        "full_weight_min": {
+            "type": "float"
+        },
+        "batholith": {
+            "type": "keyword"
+        },
+        "syx_classname": {
+            "type": "keyword"
+        },
+        "jqx_classname": {
+            "type": "keyword"
+        },
+        "cartype": {
+            "type": "keyword"
+        },
+        "standardname_2": {
+            "type": "keyword"
+        },
+        "hfname": {
+            "type": "keyword"
+        },
+        "_alltext": {
+            "type": "keyword"
+        }
+    }
+}

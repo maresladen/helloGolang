@@ -31,6 +31,8 @@ type colmunProp struct {
 	ColumnIndex     int
 	IsAllTextColumn bool
 	FieldType       string
+	Before          string
+	After           string
 }
 
 var cConfig columnConfig
@@ -132,9 +134,19 @@ func readFileByLine() {
 
 }
 
+// func doBuldRequest(bulkRequest *elastic.BulkService, ctx context.Context) {
+// 	bulkResponse, err := bulkRequest.Do(ctx)
+// 	if err != nil {
+// 		writelog(err, "doBulk faild")
+// 	}
+// 	indexed := bulkResponse.Indexed()
+// 	fmt.Println("导入了", len(indexed), "条数据,现在导入的是第<", importAllCount, ">条数据")
+
+// }
+
 func processString(text string) string {
 
-	textArr := strings.Split(text, ",")
+	textArr := strings.Split(text, `","`)
 	allText := ``
 	//m:字段对应列表内容
 	m := make(map[string]string)
@@ -145,7 +157,13 @@ func processString(text string) string {
 
 			if prop.IsAllTextColumn {
 				tempAll := strings.Trim(str, `"`)
-				allText += tempAll + `\n`
+				if prop.Before != "" {
+					tempAll = prop.Before + tempAll
+				}
+				if prop.After != "" {
+					tempAll = tempAll + prop.After
+				}
+				allText += tempAll + `,`
 			}
 			m[prop.ColumnName] = strings.Trim(str, `"`)
 		}
