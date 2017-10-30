@@ -337,7 +337,8 @@
             "After":""
         }
     ],
-    "SliptFileRowCount": 500,
+    "SliptFileRowCount": 1000,
+    "ChannelSize": 100,
     "SubmitURL": "http://localhost:9200",
 	"EsIndex" :"test",
     "EsType" :"testBulk",
