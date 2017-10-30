@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	elastic "gopkg.in/olivere/elastic.v5"
 )
@@ -37,11 +38,12 @@ type colmunProp struct {
 
 var cConfig columnConfig
 var keyMap map[int]colmunProp
-var lineCount = 1
 var splitFileNameNum = 1
 var importAllCount = 0
+var wg sync.WaitGroup
 
 func main() {
+	// do_test.NewTestFun()
 	//读取配置
 	readConfig()
 	//初始化一个hash表，用于后续处理字符串
@@ -52,6 +54,10 @@ func main() {
 
 	//调用逐行读取文件方法
 	readFileByLine()
+
+	wg.Wait() //阻塞等待所有组内成员都执行完毕退栈
+	fmt.Println("执行完毕")
+
 }
 
 func readConfig() {
@@ -93,43 +99,36 @@ func readFileByLine() {
 		fmt.Println(err)
 		panic(err)
 	}
-	bulkRequest := client.Bulk()
 
 	//----------------------
+	chRequest := make(chan *elastic.BulkService, 300)
+	// outChannel := make(chan int)
+	readEnd := false
+	// regArr := make([]*elastic.BulkIndexRequest, 0)
+	var regArr []*elastic.BulkIndexRequest
 
 	for {
-		lineCount++
 		importAllCount++
 		a, _, c := br.ReadLine()
 		if c == io.EOF {
-			//这里要做一个保存
-			if cConfig.SliptFileRowCount+1 != lineCount {
-				bulkResponse, err := bulkRequest.Do(ctx)
-				if err != nil {
-					writelog(err, "doBulk faild")
-				}
-				indexed := bulkResponse.Indexed()
-				fmt.Println("导入了", len(indexed), "条数据")
-			}
+			readEnd = true
+		}
+
+		processStringNew(string(a), client, chRequest, &regArr, readEnd)
+		if readEnd {
 			break
 		}
+	}
 
-		temp := processString(string(a))
-
-		req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(temp)
-		bulkRequest.Add(req)
-
-		if lineCount == cConfig.SliptFileRowCount {
-
-			lineCount = 0
-			bulkResponse, err := bulkRequest.Do(ctx)
-			if err != nil {
-				writelog(err, "doBulk faild")
-			}
-			indexed := bulkResponse.Indexed()
-			fmt.Println("导入了", len(indexed), "条数据,现在导入的是第<", importAllCount, ">条数据")
-			bulkRequest = client.Bulk()
-		}
+	for index := 0; index < len(chRequest); index++ {
+		wg.Add(1)
+		go func() {
+			bulkRequest := <-chRequest
+			num := bulkRequest.NumberOfActions()
+			bulkRequest.Do(ctx)
+			fmt.Println("本地导入", num, "条数据,已经读取<", importAllCount, ">条数据")
+			defer wg.Done()
+		}()
 	}
 
 }
@@ -143,6 +142,60 @@ func readFileByLine() {
 // 	fmt.Println("导入了", len(indexed), "条数据,现在导入的是第<", importAllCount, ">条数据")
 
 // }
+
+func processStringNew(text string, client *elastic.Client, ch chan *elastic.BulkService, regArr *[]*elastic.BulkIndexRequest, readEnd bool) {
+
+	textArr := strings.Split(text, `","`)
+	allText := ``
+	//m:字段对应列表内容
+	m := make(map[string]string)
+
+	for index, str := range textArr {
+		prop, ok := keyMap[index+1]
+		if ok {
+
+			if prop.IsAllTextColumn {
+				tempAll := strings.Trim(str, `"`)
+				if prop.Before != "" {
+					tempAll = prop.Before + tempAll
+				}
+				if prop.After != "" {
+					tempAll = tempAll + prop.After
+				}
+				allText += tempAll + `,`
+			}
+			m[prop.ColumnName] = strings.Trim(str, `"`)
+		}
+
+	}
+
+	m["_alltext"] = allText
+
+	jsonStr, err := json.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+
+	req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr))
+	*regArr = append(*regArr, req)
+	if len(*regArr) == cConfig.SliptFileRowCount && !readEnd {
+		tempService := client.Bulk()
+		for _, tempReq := range *regArr {
+			tempService.Add(tempReq)
+		}
+		*regArr = make([]*elastic.BulkIndexRequest, 0)
+		ch <- tempService
+	}
+	if readEnd {
+		fmt.Println("已经读取完毕")
+		tempService := client.Bulk()
+		for _, tempReq := range *regArr {
+			tempService.Add(tempReq)
+		}
+		ch <- tempService
+		close(ch)
+	}
+}
 
 func processString(text string) string {
 
