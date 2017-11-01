@@ -1,4 +1,4 @@
-package main
+package youdaoTranslate
 
 import (
 	"bufio"
@@ -17,20 +17,23 @@ type i18 struct {
 	zh string
 }
 
-var youdaoAPI string = `http://fanyi.youdao.com/openapi.do?keyfrom=go-translator&key=307165215&type=data&doctype=json&version=1.1&q=`
+var youdaoAPI = `http://fanyi.youdao.com/openapi.do?keyfrom=go-translator&key=307165215&type=data&doctype=json&version=1.1&q=`
 
 var replaceSign = strings.NewReplacer(",", "", ":", "", "：", "", "，", "", "(", "", ")", "", "!", "", "?", "", ".", "", "！", "", "？", "", "。", "")
 
+//Web 内容
 type Web struct {
 	Value []string `json:"value"`
 	Key   string   `json:"key"`
 }
 
+//Basic 不知道
 type Basic struct {
 	Phonetic string   `json:"phonetic"`
 	Explains []string `json:"explains"`
 }
 
+//Translation 不知道
 type Translation struct {
 	Translation []string `json:"translation"`
 	Basic       Basic    `json:"basic"`
@@ -112,7 +115,8 @@ func httpGet() {
 	fmt.Println(string(body))
 }
 
-func main() {
+//TranslateText 翻译
+func TranslateText() {
 	// httpGet()
 	// text := "红色的苹果"
 	// enc := mahonia.NewEncoder("utf8")

@@ -1,0 +1,14 @@
+value||string||The button show label.||button
+style||object||Defining the elements of the CSS style, such as {{width:'10px'}}.||button
+styleClass||object||Define the style of an element,it can be one of default,primary,success,warning,danger,info.||button
+enabled||boolean||Defines whether the element can be work,the default is true.||button
+visibled||boolean||Defines whether the element can be hidden,the default is true.||button
+size||string||Defining the elements of the size, such as lg,sm,xs}..||button
+onClick||function||Defining the element's click event.||button
+validationGroup||string||Defines a set of elements for the validation specified, between groups can be separated by a comma.||view
+causeValidation||boolean||Defines whether an element is triggered for verification, the default is false.||view
+title||string||Defines mouseover show information.||view
+uppercase||string||React.PropTypes.oneOfType([React.PropTypes.bool, React.PropTypes.string]).||view
+icon||string||React.PropTypes.string.||view
+update||string||React.PropTypes.string.||view
+exceptValidationGroup||string||React.PropTypes.string.||view

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"stringEditor"
 	strings "strings"
 	"sync"
 	"time"
@@ -44,12 +45,24 @@ var splitFileNameNum = 1
 var importAllCount = 0
 var wg sync.WaitGroup
 var wgPost sync.WaitGroup
+var wgPostChild sync.WaitGroup
 
 var wgChild sync.WaitGroup
 
 func main() {
+	doMain()
+	// doTest()
+}
+
+func doTest() {
+
+	stringEditor.DoStringEditor()
+	// youdaoTranslate.TranslateText()
+}
+
+func doMain() {
+
 	fmt.Println("let's go! ", time.Now().Format("2006-01-02 15:04:05"))
-	// do_test.NewTestFun()
 	//读取配置
 	readConfig()
 	//初始化一个hash表，用于后续处理字符串
@@ -61,10 +74,12 @@ func main() {
 	//调用逐行读取文件方法
 	readFileByLine()
 
-	wg.Wait()     //阻塞等待所有组内成员都执行完毕退栈
-	wgPost.Wait() //阻塞等待所有组内成员都执行完毕退栈
+	//阻塞等待所有组内成员都执行完毕退栈
+	wgChild.Wait()
+	wg.Wait()
+	wgChild.Wait()
+	wgPost.Wait()
 	fmt.Println("执行完毕 ", time.Now().Format("2006-01-02 15:04:05"))
-
 }
 
 func readConfig() {
@@ -126,7 +141,7 @@ func readFileByLine() {
 	// 	}()
 	// }
 	wg.Add(1)
-	go func(wg *sync.WaitGroup) {
+	go func(wg *sync.WaitGroup, wgChild *sync.WaitGroup) {
 		for b := range chText {
 
 			bulkService := client.Bulk()
@@ -135,9 +150,9 @@ func readFileByLine() {
 
 				// go processStringNew(c, client, tempService)
 				wgChild.Add(1)
-				go func(wgChild *sync.WaitGroup, text string, bulkService *elastic.BulkService) {
+				go func(wgChild *sync.WaitGroup, text *string, bulkService *elastic.BulkService) {
 					//这里我加了一个同步方法，这个警告是不是可以避免
-					textArr := strings.Split(text, `","`)
+					textArr := strings.Split(*text, `","`)
 					allText := ``
 					//m:字段对应列表内容
 					m := make(map[string]string)
@@ -171,22 +186,27 @@ func readFileByLine() {
 					req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr))
 					bulkService.Add(req)
 					wgChild.Done()
-				}(&wgChild, text, bulkService)
+				}(wgChild, &text, bulkService)
 			}
 			wgChild.Wait()
 			chRequest <- bulkService
 		}
 		wg.Done()
 		close(chRequest)
-	}(&wg)
+	}(&wg, &wgChild)
 
 	wgPost.Add(1)
-	go func(wgPost *sync.WaitGroup, ctxAddr *context.Context) {
+	go func(wgPost *sync.WaitGroup, wgPostChild *sync.WaitGroup, ctxAddr *context.Context) {
+
 		for temp := range chRequest {
-			temp.Do(*ctxAddr)
+			wgPostChild.Add(1)
+			go func(bulkServiceTemp *elastic.BulkService, wgPostChild *sync.WaitGroup, ctxAddrChild *context.Context) {
+				bulkServiceTemp.Do(*ctxAddrChild)
+				wgPostChild.Done()
+			}(temp, wgPostChild, ctxAddr)
 		}
 		wgPost.Done()
-	}(&wgPost, &ctx)
+	}(&wgPost, &wgPostChild, &ctx)
 
 	for {
 		a, _, c := br.ReadLine()
