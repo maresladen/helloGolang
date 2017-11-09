@@ -1,0 +1,81 @@
+autoUpload|autoUpload|boolean|Defines whether an element automatically access API, the default is true.
+clickable|boolean|Defines whether the element can click.
+onError|function|Define the elements upload error the triggered event.
+onRemoveFile|function|Define the elements delete file the triggered event.
+onAddFile|function|Define the elements upload successfully the triggered event.
+onSuccess|number|Define the elements max upload files size, the default is 512MB.
+onComplete|number|Define the elements upload finishes the triggered event.
+fileTypeErrorMsg|string|Define the error message displayed when the file type is not accepted.
+getDropZone|function|Get DropZone object. UIDropZone.getDropZone(id)
+upload|function|Get the need to manually upload the file. UIDropZone.upload(id)
+getAcceptedFiles|function|Get the accepted file. UIDropZone.getAcceptedFiles(id)
+getRejectedFiles|function|Get the rejected file. UIDropZone.getRejectedFiles(id)
+getQueuedFiles|function|Get the queuing file. UIDropZone.getQueuedFiles(id)
+getUploadingFiles|function|Get the uploading file. UIDropZone.getUploadingFiles(id)
+type|string|Defining the elements type. If equal to legend, there is an underscore, if equal to span, there is a background color the option is legend/span.
+success|function|Success popup UIMessageHelper.success(message).
+info|function|Information popup. UIMessageHelper.info(message).
+warning|function|Warning popup. UIMessageHelper.warning(message).
+error|function|Error popup. UIMessageHelper.error(message).
+minValue|number|Define the elements of the minimum value.
+maxValue|number|Define the maximum number of elements.
+minValueMessage|string|Define the elements is less than the minimum when the message.
+maxValueMessage|string|Define the elements is greater than the maximum value when the prompt information.
+showPassword|boolean|Defines whether the elements to hide and display can switch.
+limit|number|Define the elements of the limiting value，the default is 100.
+symbolPosition|string|Define the elements of the position of the '%'',the default is right the option is right/none.
+parentId|string|Define the elements of the parent ID.
+parentType|string|React.PropTypes.string.
+childrenId|string|Define the elements of the child ID.
+parmeters|string|React.PropTypes.type.
+foreignKey|string|Define the elements of related foreign keys.
+blankOption|string|Define the elements the prompt information input fields expectations.
+showBlankOption|boolean|Defines whether the expected value of message element input field, the default is true.
+autoComplete|boolean|Defines whether the search box to display an element, the default is false.
+multiSelect|boolean|Define the elements of a multiple-choice functions,and autoComplete used together, the default is false.
+column|number|Defining the elements columns number.
+colspan|number|Defining the elements colspan cols.
+onColor|string|Define the elements ON style,the default is primary the option is default/primary/success/info/warning/danger.
+offColor|string|Define the elements OFF style,the default is primary the option is default/primary/success/info/warning/danger.
+onText|string|Define the elements ON display text.
+offText|string|Define the elements OFF display text.
+animate|boolean|Defines whether the element display animation effects,the default is true.
+type|string|Defining the elements display style, the default is tabs. the option is tabs/pills.
+onTabChange|string|Defining the elements change the triggered event.
+onBeforeTabChange|function|Define the elements change before the trigger event.
+onAfterTabChange|function|Define the elements change after the trigger event.
+lazyLoad|function|Define the way of load, Default true.
+badge|string|React.PropTypes.string.
+highlight|array|React.PropTypes.array.
+render|func|React.PropTypes.func.
+rowDetailRender|func|React.PropTypes.string.
+detailVisible|bool|React.PropTypes.bool.
+onSelectall|string|React.PropTypes.string.
+provider|object|Defining the elements of the data source.
+indexable|boolean|Defines whether an element is displayed sequence, the default is false.
+detailable|boolean|Defines whether an element is displayed folding information, the default is false.
+detailSecquence|string|Defines whether an element is displayed folding information location, the default is last column.
+sortable|boolean|Defines whether an element is displayed sort, the default is false.
+pageable|boolean|Defines whether an element is displayed paging, the default is true.
+searchable|boolean|Defines whether an element is displayed search box, the default is false.
+rowDetailCallBack|function|Defines when rowdetail show or colse call function.
+errorMessage|string|React.PropTypes.string.
+clearBank|string|React.PropTypes.type.
+suffixIcon|string|Define element suffix icon.
+onSuffixIconClick|function|Define the elements click suffix icon when the trigger event.
+suffixText|string|Define element suffix text.
+prefixIcon|string|Define element prefix icon.
+onPrefixIconClick|function|Define the elements click prefix icon when the trigger event.
+prefixText|dtring|Define element prefix text.
+allowChars|string|Define the elements of the input format.
+pattern|string|Define the elements of the input value with a certain pattern matching work.
+toUpperLowerCase|string|Define the elements input values into uppercase or lowercase the option is upper/lower.
+cols|number|Define the elements cols.
+rows|number|Define the elements rows.
+resize|string|Define the way of resize area, default both the option is none/both/horizontal/vertical.
+forceUpdate|function|Refresh elements. ComponentContext.forceUpdate("id");
+activeIndex|number|Defining the region activity index.
+wizardStepButton|function|Defining the elements button.
+next|function|Define the elements to jump to the next activity area. UIWizard.next("id")
+previous|function|Define the elements on the jump to the previous activity area. UIWizard.previous("id")
+skipTo|function|Define the elements to jump to designated area. UIWizard.skipTo("id", index)
