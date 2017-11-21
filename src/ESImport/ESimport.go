@@ -78,7 +78,7 @@ func doMain() {
 }
 
 func readConfig() {
-	fi, err := os.Open("config.json")
+	fi, err := os.Open("../ESImport/config.json")
 	if err != nil {
 		writelog(err, "get config json data wrong")
 	} else {

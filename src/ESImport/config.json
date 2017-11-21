@@ -1,5 +1,5 @@
 {
-    "FileName": "jy2.txt",
+    "FileName": "../sourceFile/jy2.txt",
     "Cloumns": [
         { "ColumnName": "standard_name",
             "ColumnIndex": 1,
@@ -338,8 +338,8 @@
         }
     ],
     "SliptFileRowCount": 1000,
-    // 这里的协程数受ES并发数的制约，不要太高，暂时测试64个会出现ES返回错误的情况
-    "ChannelSize": 32,
+    // 这里的协程数受ES并发数的制约
+    "ChannelSize": 64,
     "SubmitURL": "http://localhost:9200",
 	"EsIndex" :"test",
     "EsType" :"testBulk",
