@@ -45,21 +45,18 @@ var keyMap map[int]colmunProp
 var splitFileNameNum = 1
 var importAllCount = 0
 
-//Importer 通过Config文件做导入操作
-func Importer() {
-	doMain()
+//ImporterByText 通过Config文件做导入操作
+func ImporterByText() {
+	doImportByText()
 	// doTest()
 }
 
-func doTest() {
+func doImportByJSON() {
 
-	// 处理String内容
-	// stringEditor.DoStringEditor()
-	// 有道翻译
-	// youdaoTranslate.TranslateText()
+	//解析json内容,然后做导入
 }
 
-func doMain() {
+func doImportByText() {
 
 	fmt.Println("let's go! ", time.Now().Format("2006-01-02 15:04:05"))
 	//读取配置

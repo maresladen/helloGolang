@@ -2,8 +2,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"math"
 	"math/big"
@@ -16,24 +14,42 @@ func MaxBigint(n int) (string, int) {
 	result := big.NewInt(1)
 
 	tPrime := time.Now()
-	primeArr := make([]int64, 78498)
+	primeArr := make([]int64, 100)
 	for i := 1; i <= n; i++ {
 		if prime(i) {
-			primeArr[nCount] = int64(i)
+			if nCount < len(primeArr) {
+				primeArr[nCount] = int64(i)
+			} else {
+				primeArr = append(primeArr, int64(i))
+
+			}
 			nCount++
-			// temp := big.NewInt(int64(i))
-			// result.Mul(result, temp)
 		}
 	}
 
+	fmt.Println()
 	elapsedPrime := time.Since(tPrime)
-	fmt.Println("获取质数耗时:", elapsedPrime)
 
+	//can be del--------打印素数(这里可以做个txt的保存)-------
+	// for i, v := range primeArr {
+	// 	fmt.Printf("%8d", v)
+	// 	if i%8 == 0 {
+	// 		fmt.Println()
+	// 	}
+	// }
+
+	// fmt.Println()
+	//can be del--------打印素数(这里可以做个txt的保存)-------
+	fmt.Println("获取质数耗时:", elapsedPrime)
 	tStart := time.Now()
 
-	for i := range primeArr {
+	for index := 0; index < len(primeArr); index++ {
+		i := primeArr[index]
+		if i == 0 {
+			break
+		}
 
-		temp := big.NewInt(int64(i))
+		temp := big.NewInt(i)
 		result.Mul(result, temp)
 	}
 
@@ -42,12 +58,14 @@ func MaxBigint(n int) (string, int) {
 	return result.String(), nCount
 }
 
-//Md5fun 字符串转换为MD5
-func Md5fun(s string) string {
-	signByte := []byte(s)
-	hash := md5.New()
-	hash.Write(signByte)
-	return hex.EncodeToString(hash.Sum(nil))
+//CreatePrimeMul 根据用户传入的int数组计算md5哈希值
+func CreatePrimeMul(nums ...int) string {
+	result := big.NewInt(1)
+	for _, num := range nums {
+		temp := big.NewInt(int64(num))
+		result.Mul(result, temp)
+	}
+	return Md5ByteArr(result.Bytes())
 }
 
 //------------私有方法------------------

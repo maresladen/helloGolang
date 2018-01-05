@@ -1,2 +1,3 @@
 src/fileUpload/upload
 pkg
+*.zip

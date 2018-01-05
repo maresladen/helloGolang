@@ -162,7 +162,6 @@ func dojob(hans string) (string, string) {
 	// }
 	english := tanslatefun(url.QueryEscape(hans))
 	code := getCode(english)
-	//todo:这里做修改
 	cnText += `` + code + `:'` + hans + `',`
 	engText += `` + code + `:'` + english + `',`
 
