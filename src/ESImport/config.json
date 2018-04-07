@@ -1,348 +1,348 @@
 {
     "FileName": "../sourceFile/jy2.txt",
     "Cloumns": [
-        { "ColumnName": "standard_name",
+        {
+            "ColumnName": "standard_name",
             "ColumnIndex": 1,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "vehicle_alias",
             "ColumnIndex": 2,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "gearbox_type",
             "ColumnIndex": 3,
             "IsAllTextColumn": true,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "remark",
             "ColumnIndex": 4,
             "IsAllTextColumn": true,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "seat",
             "ColumnIndex": 5,
             "IsAllTextColumn": true,
-            "FieldType":"integer",
-            "Before":"",
-            "After":"座"
+            "FieldType": "integer",
+            "Before": "",
+            "After": "座"
         },
         {
             "ColumnName": "company_name",
             "ColumnIndex": 6,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "family_name",
             "ColumnIndex": 7,
             "IsAllTextColumn": true,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "brand_name",
             "ColumnIndex": 8,
             "IsAllTextColumn": true,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "vehicle_class",
             "ColumnIndex": 9,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "market_date",
             "ColumnIndex": 10,
             "IsAllTextColumn": false,
-            "FieldType":"date",
-            "Before":"",
-            "After":""
+            "FieldType": "date",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "engine_desc",
             "ColumnIndex": 11,
             "IsAllTextColumn": true,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "year_pattern",
             "ColumnIndex": 12,
             "IsAllTextColumn": true,
-            "FieldType":"integer",
-            "Before":"",
-            "After":""
+            "FieldType": "integer",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "group_name",
             "ColumnIndex": 13,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "new_vehicle_class",
             "ColumnIndex": 14,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "effluent_standard",
             "ColumnIndex": 15,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "power_type",
             "ColumnIndex": 16,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "vehicle_id",
             "ColumnIndex": 17,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "rb_code",
             "ColumnIndex": 18,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "anti_theft",
             "ColumnIndex": 19,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "abs_flag",
             "ColumnIndex": 20,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "import_flag",
             "ColumnIndex": 21,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "vin_code",
             "ColumnIndex": 22,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "risk_flag",
             "ColumnIndex": 23,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "stop_flag",
             "ColumnIndex": 24,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "displacement",
             "ColumnIndex": 25,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "seat_max",
             "ColumnIndex": 26,
             "IsAllTextColumn": false,
-            "FieldType":"integer",
-            "Before":"",
-            "After":""
+            "FieldType": "integer",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "power",
             "ColumnIndex": 27,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "seat_min",
             "ColumnIndex": 28,
             "IsAllTextColumn": false,
-            "FieldType":"integer",
-            "Before":"",
-            "After":""
+            "FieldType": "integer",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "airbag_num",
             "ColumnIndex": 29,
             "IsAllTextColumn": false,
-            "FieldType":"integer",
-            "Before":"",
-            "After":""
+            "FieldType": "integer",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "tonnage",
             "ColumnIndex": 30,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "purchase_price",
             "ColumnIndex": 31,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "purchase_price_tax",
             "ColumnIndex": 32,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "kindred_price",
             "ColumnIndex": 33,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "kindred_price_tax",
             "ColumnIndex": 34,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "full_weight_max",
             "ColumnIndex": 35,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "full_weight_min",
             "ColumnIndex": 36,
             "IsAllTextColumn": false,
-            "FieldType":"long",
-            "Before":"",
-            "After":""
+            "FieldType": "long",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "batholith",
             "ColumnIndex": 37,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "syx_classname",
             "ColumnIndex": 38,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "jqx_classname",
             "ColumnIndex": 39,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "cartype",
             "ColumnIndex": 40,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "standardname_2",
             "ColumnIndex": 41,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         },
         {
             "ColumnName": "hfname",
             "ColumnIndex": 42,
             "IsAllTextColumn": false,
-            "FieldType":"text",
-            "Before":"",
-            "After":""
+            "FieldType": "text",
+            "Before": "",
+            "After": ""
         }
     ],
     "SliptFileRowCount": 1000,
-    // 这里的协程数受ES并发数的制约
     "ChannelSize": 64,
     "SubmitURL": "http://localhost:9200",
-	"EsIndex" :"test",
-    "EsType" :"testBulk",
-    "LoginUser":"elastic",
-    "LoginPWD":"changeme"
+    "EsIndex": "test",
+    "EsType": "testBulk",
+    "LoginUser": "elastic",
+    "LoginPWD": "changeme"
 }

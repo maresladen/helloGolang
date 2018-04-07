@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 	"utils"
+	"youdaoTranslate"
 )
 
 func main() {
@@ -13,6 +14,19 @@ func main() {
 
 func doTest() {
 
+	// path, _ := utils.GetCurrentPath()
+	// temp, _ := codeHunter.WalkDir(path, ".txt")
+	// temp, _ := codeHunter.WalkDir(path)
+
+	// for _, zipFile := range temp {
+	// 	codeHunter.Base64T(zipFile)
+	// }
+
+	// for _, txtFile := range temp {
+	// 	codeHunter.BaseBack(txtFile)
+	// }
+
+	// codeHunter.BaseBack("temp.txt")
 	// fmt.Println("测试方法")
 
 	// abc := utils.Md5File("hello")
@@ -22,6 +36,12 @@ func doTest() {
 	// stringEditor.DoStringEditor()
 	// 有道翻译
 	// youdaoTranslate.TranslateText()
+
+	// -------------------------------------------------------------------------------
+	// 百度翻译
+
+	var strTrans = `如何在一次请求中翻译多个单词或者多段文本` + "\n" + `为什么我的请求总是返回错误码54001`
+	youdaoTranslate.TranslateTextByBaidu(strTrans)
 }
 
 //export doMain
@@ -43,7 +63,7 @@ func doMain() {
 	//---------------gzip----------------
 
 	//大数字计算
-	num := 108000
+	num := 180000
 	tStart := time.Now()
 	a, n := utils.MaxBigint(num)
 	fmt.Println("字符串长度:", len(a))
@@ -52,6 +72,10 @@ func doMain() {
 	fmt.Println("总共耗时:", elapsed)
 	fmt.Println("MD5:", b)
 	fmt.Println("质数总数", n)
+	fmt.Println("数字", a)
+
+	// c := utils.DecimalToAny(9999999999, 76)
+	// fmt.Println("76进制", c)
 
 	//---------------zlib----------------
 	// //read

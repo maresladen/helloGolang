@@ -1,0 +1,12 @@
+{
+    "SourceFileName": "",
+    "SourceFileHasKey": false,
+    "GenerateKey": false,
+    "FromLang": "zh",
+    "ToLang": "en",
+    "ProcessCount": 5,
+    "SinglePostCount": 30,
+    "Appid": "",
+    "SecretKey": "",
+    "TransURL": "http://api.fanyi.baidu.com/api/trans/vip/translate"
+}

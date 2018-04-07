@@ -1,0 +1,5 @@
+{
+    "Type": "Encode",
+    "IFileMatch": "*.zip",
+    "OFileMatch": "*.txt"
+}
