@@ -1,0 +1,5 @@
+package codeSpider
+
+func entryPoint() {
+
+}
