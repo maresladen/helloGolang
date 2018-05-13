@@ -40,8 +40,10 @@ func doTest() {
 	// -------------------------------------------------------------------------------
 	// 百度翻译
 
-	var strTrans = `如何在一次请求中翻译多个单词或者多段文本` + "\n" + `为什么我的请求总是返回错误码54001`
-	youdaoTranslate.TranslateTextByBaidu(strTrans)
+	youdaoTranslate.InitTrans()
+	var strTrans = `测试内容和加密`
+	url := youdaoTranslate.GenerateURL(strTrans)
+	youdaoTranslate.TranslateTextByBaidu(url)
 }
 
 //export doMain
@@ -63,16 +65,16 @@ func doMain() {
 	//---------------gzip----------------
 
 	//大数字计算
-	num := 180000
+	num := 18000000
 	tStart := time.Now()
 	a, n := utils.MaxBigint(num)
 	fmt.Println("字符串长度:", len(a))
-	b := utils.Md5String(a)
+	// b := utils.Md5String(a)
 	elapsed := time.Since(tStart)
 	fmt.Println("总共耗时:", elapsed)
-	fmt.Println("MD5:", b)
+	// fmt.Println("MD5:", b)
 	fmt.Println("质数总数", n)
-	fmt.Println("数字", a)
+	fmt.Println("最大数", a)
 
 	// c := utils.DecimalToAny(9999999999, 76)
 	// fmt.Println("76进制", c)

@@ -72,13 +72,20 @@ func generateTransText() {
 
 }
 
-func generateURL(strTrans string) string {
+//GenerateURL 配置URL内容
+func GenerateURL(strTrans string) string {
 	salt := rand.Intn(32768) + 32768
 	sign := appid + strTrans + strconv.Itoa(salt) + secretKey
+
+	fmt.Println(`--------------sign----------------------`)
+	fmt.Println(sign)
+	fmt.Println(`--------------sign----------------------`)
 	h := md5.New()
 	io.WriteString(h, sign)
-
 	signMD5 := hex.EncodeToString(h.Sum(nil))
+	fmt.Println(`--------------signMd5----------------------`)
+	fmt.Println(signMD5)
+	fmt.Println(`--------------signMd5----------------------`)
 	transText, err := url.Parse(strTrans)
 	if err != nil {
 		println("wrong")

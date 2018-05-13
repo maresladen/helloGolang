@@ -47,7 +47,7 @@ func ReadAllBytes(path string) []byte {
 
 //WriteFile 写文件
 func WriteFile(strFileName, strDefine string) {
-	if checkFileIsExist(strFileName) {
+	if CheckFileIsExist(strFileName) {
 		file, _ := os.OpenFile(strFileName, os.O_APPEND, 0666)
 		defer file.Close()
 		io.WriteString(file, strDefine)
@@ -62,7 +62,7 @@ func WriteFile(strFileName, strDefine string) {
 
 //WriteBytes 写文件
 func WriteBytes(strFileName string, b []byte) {
-	if checkFileIsExist(strFileName) {
+	if CheckFileIsExist(strFileName) {
 		file, _ := os.OpenFile(strFileName, os.O_APPEND, 0666)
 		defer file.Close()
 		file.Write(b)
@@ -75,7 +75,8 @@ func WriteBytes(strFileName string, b []byte) {
 	}
 }
 
-func checkFileIsExist(filename string) bool {
+//CheckFileIsExist 检查是否存在
+func CheckFileIsExist(filename string) bool {
 	var exist = true
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		exist = false

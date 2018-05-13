@@ -52,7 +52,8 @@ func MaxBigint(n int) (string, int) {
 		}
 
 		temp := big.NewInt(i)
-		result.Mul(result, temp)
+		// result.Mul(result, temp)
+		result = temp
 	}
 
 	elapsed := time.Since(tStart)
