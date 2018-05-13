@@ -1,4 +1,5 @@
 src/fileUpload/upload
-pkg
+pkg/
 *.zip
 *.json
+test.html
