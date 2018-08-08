@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	strings "strings"
 	"time"
 
@@ -24,6 +25,8 @@ type columnConfig struct {
 	EsType            string       `json:"EsType"`
 	LoginUser         string       `json:"LoginUser"`
 	LoginPWD          string       `json:"LoginPWD"`
+	SliptSign         string       `json:"SliptSign"`
+	TrimSign          string       `json:"TrimSign"`
 }
 
 type colmunProp struct {
@@ -48,7 +51,6 @@ var importAllCount = 0
 //ImporterByText 通过Config文件做导入操作
 func ImporterByText() {
 	doImportByText()
-	// doTest()
 }
 
 func doImportByJSON() {
@@ -70,12 +72,12 @@ func doImportByText() {
 	//调用逐行读取文件方法
 	readFileByLine()
 
-	//阻塞等待所有组内成员都执行完毕退栈
 	fmt.Println("执行完毕 ", time.Now().Format("2006-01-02 15:04:05"))
+
 }
 
 func readConfig() {
-	fi, err := os.Open("../ESImport/config.json")
+	fi, err := os.Open("./config.json")
 	if err != nil {
 		writelog(err, "get config json data wrong")
 	} else {
@@ -113,85 +115,121 @@ func readFileByLine() {
 		fmt.Println(err)
 		panic(err)
 	}
+	//=============重构版===============
 
-	// ----------------------
-	chText := make(chan chanLogType, 1000)
+	chLog := make(chan chanLogType, 1000)
+	var textArrs []string
+	indexedCount := 0
+	chDoIndexArr := make(chan []string, cConfig.ChannelSize*3)
 	chControlGoRoutine := make(chan int, cConfig.ChannelSize)
-	chString := make(chan string, cConfig.SliptFileRowCount*3)
-	readEnd := false
-	doworkCount := 0
 	for {
+
+		importAllCount++
 		a, _, c := br.ReadLine()
 		if c == io.EOF {
-			var chTextEle []string
-			for textIndex := 0; textIndex < importAllCount%cConfig.SliptFileRowCount; textIndex++ {
-				temp := <-chString
-				chTextEle = append(chTextEle, temp)
+			if len(textArrs) > 0 {
+				indexedCount++
+				chDoIndexArr <- textArrs
+				chControlGoRoutine <- 1
+				go doWorkNew(chDoIndexArr, chControlGoRoutine, client, &ctx, chLog, importAllCount, cConfig.SliptSign, cConfig.TrimSign)
 			}
-			fmt.Println("读取了", importAllCount, "条数据，text 关闭了 ", time.Now().Format("2006-01-02 15:04:05"))
-			readEnd = true
-			doworkCount++
-			go doWork(&chTextEle, client, &ctx, chText, chControlGoRoutine, importAllCount)
-		}
-		if readEnd {
 			break
 		} else {
 			if importAllCount%cConfig.SliptFileRowCount == 0 && importAllCount != 0 {
-				var chTextEle []string
-				for textIndex := 0; textIndex < cConfig.SliptFileRowCount; textIndex++ {
-					temp := <-chString
-					chTextEle = append(chTextEle, temp)
 
-				}
+				textArrs = append(textArrs, strings.TrimSpace(string(a)))
+				chDoIndexArr <- textArrs
+				textArrs = nil
 
-				doworkCount++
-				go doWork(&chTextEle, client, &ctx, chText, chControlGoRoutine, importAllCount)
+				chControlGoRoutine <- 1
+				textArrs = make([]string, cConfig.SliptFileRowCount)
+				indexedCount++
+				go doWorkNew(chDoIndexArr, chControlGoRoutine, client, &ctx, chLog, importAllCount, cConfig.SliptSign, cConfig.TrimSign)
+			} else {
+
+				textArrs = append(textArrs, strings.TrimSpace(string(a)))
 			}
 		}
-
-		chString <- string(a)
-		importAllCount++
-
 	}
 
-	for index := 0; index < doworkCount; index++ {
-		// <-chText
-		temp := <-chText
-		fmt.Println("导入了第", temp.count, "*** 时间节点为", temp.time)
-
+	for index := 0; index < indexedCount; index++ {
+		log := <-chLog
+		fmt.Println("导入了第", log.count, "*** 时间节点为", log.time)
 	}
 
 }
 
-func doWork(b *[]string, client *elastic.Client, ctx *context.Context, ch chan chanLogType, chControlGoRoutine chan int, importCount int) {
+func doWorkNew(chData chan []string, chControlGoRoutine chan int, client *elastic.Client, ctx *context.Context, ch chan chanLogType, importCount int, sliptSign string, trimSign string) {
+	strArr := <-chData
 	bulkService := client.Bulk()
-	for _, text := range *b {
+	for _, text := range strArr {
+		textArr := strings.Split(text, sliptSign)
+		if len(text) == 0 {
+			continue
+		}
 
-		textArr := strings.Split(text, `","`)
-		allText := ``
 		//m:字段对应列表内容
 		m := make(map[string]string)
 
 		for index, str := range textArr {
 			prop, ok := keyMap[index+1]
 			if ok {
-
-				if prop.IsAllTextColumn {
-					tempAll := strings.Trim(str, `"`)
-					if prop.Before != "" {
-						tempAll = prop.Before + tempAll
-					}
-					if prop.After != "" {
-						tempAll = tempAll + prop.After
-					}
-					allText += tempAll + `,`
-				}
-				m[prop.ColumnName] = strings.Trim(str, `"`)
+				m[prop.ColumnName] = strings.Trim(str, trimSign)
 			}
 
 		}
 
-		m["_alltext"] = allText
+		jsonStr, err := json.Marshal(m)
+		if err != nil {
+			panic(err)
+		}
+
+		req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr))
+		bulkService.Add(req)
+	}
+
+	rep, err := bulkService.Do(*ctx)
+
+	<-chControlGoRoutine
+	if err != nil {
+		temp := &chanLogType{
+			count: importCount,
+			time:  "call error",
+		}
+		ch <- *temp
+	} else {
+		if !rep.Errors {
+			temp := &chanLogType{
+				count: importCount,
+				time:  time.Now().Format("2006-01-02 15:04:05"),
+			}
+			ch <- *temp
+		} else {
+			temp := &chanLogType{
+				count: importCount,
+				time:  "do index error",
+			}
+			ch <- *temp
+		}
+	}
+}
+
+func doWork(b *[]string, client *elastic.Client, ctx *context.Context, ch chan chanLogType, chControlGoRoutine chan int, importCount int, sliptSign string, trimSign string) {
+	bulkService := client.Bulk()
+	unimportItems := ""
+	for _, text := range *b {
+		unimportItems += text + "\n"
+		textArr := strings.Split(text, sliptSign)
+		//m:字段对应列表内容
+		m := make(map[string]string)
+
+		for index, str := range textArr {
+			prop, ok := keyMap[index+1]
+			if ok {
+				m[prop.ColumnName] = strings.Trim(str, trimSign)
+			}
+
+		}
 
 		jsonStr, err := json.Marshal(m)
 		if err != nil {
@@ -203,31 +241,29 @@ func doWork(b *[]string, client *elastic.Client, ctx *context.Context, ch chan c
 	}
 	chControlGoRoutine <- 1
 	rep, err := bulkService.Do(*ctx)
-	if !rep.Errors {
-		temp := &chanLogType{
-			count: importCount,
-			time:  time.Now().Format("2006-01-02 15:04:05"),
-		}
-		ch <- *temp
-		<-chControlGoRoutine
-	} else {
-		temp := &chanLogType{
-			count: importCount,
-			time:  "has error",
-		}
-		ch <- *temp
-		<-chControlGoRoutine
-	}
 	if err != nil {
 		temp := &chanLogType{
 			count: importCount,
-			time:  "http has error",
+			time:  "call error",
 		}
 		<-chControlGoRoutine
 		ch <- *temp
-		fmt.Println("------------------error----------------------")
-		fmt.Println("|     ", err)
-		fmt.Println("------------------error----------------------")
+	} else {
+		if !rep.Errors {
+			temp := &chanLogType{
+				count: importCount,
+				time:  time.Now().Format("2006-01-02 15:04:05"),
+			}
+			ch <- *temp
+			<-chControlGoRoutine
+		} else {
+			temp := &chanLogType{
+				count: importCount,
+				time:  "do index error",
+			}
+			ch <- *temp
+			<-chControlGoRoutine
+		}
 	}
 }
 
@@ -240,14 +276,6 @@ func createFloder(fName string) {
 	if err != nil {
 		os.Mkdir(fName, 0777)
 	}
-}
-
-func writeFile(str string) {
-	file, _ := os.Create("text.txt")
-
-	defer file.Close()
-
-	file.WriteString(str)
 }
 
 //写log
@@ -273,4 +301,141 @@ func checkFileIsExist(filename string) bool {
 		exist = false
 	}
 	return exist
+}
+
+//------------------------guf for test---------------------------------
+
+//DoImportForTest  测试用方法
+func DoImportForTest() {
+
+	fmt.Println("let's go123! ", time.Now().Format("2006-01-02 15:04:05"))
+	//读取配置
+	readConfig()
+	//初始化一个hash表，用于后续处理字符串
+	keyMap = make(map[int]colmunProp)
+	for _, prop := range cConfig.Cloumns {
+		keyMap[prop.ColumnIndex] = prop
+	}
+
+	//调用逐行读取文件方法
+	readFileByLineForTest()
+
+	fmt.Println("执行完毕 ", time.Now().Format("2006-01-02 15:04:05"))
+
+}
+
+func readFileByLineForTest() {
+
+	//----------------------
+	ctx := context.Background()
+
+	// // 连接es
+	// fmt.Println(cConfig.LoginUser)
+	// fmt.Println(cConfig.LoginPWD)
+
+	client, err := elastic.NewClient(elastic.SetURL(cConfig.SubmitURL))
+
+	if cConfig.LoginUser != "" {
+		client, err = elastic.NewClient(
+			elastic.SetURL(cConfig.SubmitURL),
+			elastic.SetBasicAuth(cConfig.LoginUser, cConfig.LoginPWD))
+	}
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	// ----------------------
+	chText := make(chan chanLogType, 1000)
+	chControlGoRoutine := make(chan int, cConfig.ChannelSize)
+	chString := make(chan string, cConfig.SliptFileRowCount*3)
+	doworkCount := 0
+	for i := 5000000; i <= 6000000; i++ {
+		if importAllCount%cConfig.SliptFileRowCount == 0 && importAllCount != 0 {
+			var chTextEle []string
+			for textIndex := 0; textIndex < cConfig.SliptFileRowCount; textIndex++ {
+				temp := <-chString
+				chTextEle = append(chTextEle, temp)
+
+			}
+
+			doworkCount++
+			go doWorkForTest(&chTextEle, client, &ctx, chText, chControlGoRoutine, importAllCount)
+		}
+
+		// chString <- string(`"` + strconv.Itoa(i) + `","` + strconv.Itoa(i) + `","` + strconv.Itoa(i) + `"`)
+		chString <- string(`"` + strconv.Itoa(i) + `","` + strconv.Itoa(i) + `千万2号","` + strconv.Itoa(i) + `千万2号"`)
+
+		importAllCount++
+	}
+
+	for index := 0; index < doworkCount; index++ {
+		// <-chText
+		temp := <-chText
+		fmt.Println("导入了第", temp.count, "*** 时间节点为", temp.time)
+	}
+
+}
+
+func doWorkForTest(b *[]string, client *elastic.Client, ctx *context.Context, ch chan chanLogType, chControlGoRoutine chan int, importCount int) {
+	bulkService := client.Bulk()
+	unimportItems := ""
+	id := ""
+	for _, text := range *b {
+		unimportItems += text + "\n"
+		textArr := strings.Split(text, `","`)
+		//m:字段对应列表内容
+		m := make(map[string]string)
+
+		id = strings.Trim(textArr[0], `"`)
+		for index, str := range textArr {
+			prop, ok := keyMap[index+1]
+			if ok {
+
+				temp := strings.Trim(str, `"`)
+				if prop.Before != "" {
+					temp = prop.Before + temp
+				}
+				if prop.After != "" {
+					temp = temp + prop.After
+				}
+				m[prop.ColumnName] = temp
+			}
+
+		}
+
+		jsonStr, err := json.Marshal(m)
+		if err != nil {
+			panic(err)
+		}
+
+		req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr)).Parent(id) //.Parent("-97")
+
+		bulkService.Add(req)
+	}
+	chControlGoRoutine <- 1
+	rep, err := bulkService.Do(*ctx)
+	if !rep.Errors {
+		temp := &chanLogType{
+			count: importCount,
+			time:  time.Now().Format("2006-07-02 15:04:05"),
+		}
+		ch <- *temp
+		<-chControlGoRoutine
+	} else {
+		temp := &chanLogType{
+			count: importCount,
+			time:  "has error",
+		}
+		ch <- *temp
+		<-chControlGoRoutine
+	}
+	if err != nil {
+		temp := &chanLogType{
+			count: importCount,
+			time:  "has error",
+		}
+		<-chControlGoRoutine
+		ch <- *temp
+	}
 }
