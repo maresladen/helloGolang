@@ -1,5 +1,10 @@
 {
-    "Type": "Encode",
-    "IFileMatch": "*.zip",
-    "OFileMatch": "*.txt"
+    "urlPreMatch": [
+        "AP26",
+        "unicorn"
+    ],
+    "urlSuffixMatch": [
+        "/"
+    ],
+    "fileSuffixMatch": []
 }

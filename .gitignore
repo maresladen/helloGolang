@@ -1,5 +1,8 @@
-src/fileUpload/upload
 pkg/
 *.zip
 *.json
+*.csv
+*.exe
 test.html
+src/main.exe
+src/main

@@ -27,6 +27,7 @@ type columnConfig struct {
 	LoginPWD          string       `json:"LoginPWD"`
 	SliptSign         string       `json:"SliptSign"`
 	TrimSign          string       `json:"TrimSign"`
+	IdField           string       `json:"IdField"`
 }
 
 type colmunProp struct {
@@ -51,6 +52,54 @@ var importAllCount = 0
 //ImporterByText 通过Config文件做导入操作
 func ImporterByText() {
 	doImportByText()
+}
+
+func TestTest() {
+	ctx1 := context.Background()
+
+	// Create a client
+	client, err := elastic.NewClient(elastic.SetURL("http://10.1.14.178:9206"))
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	templength := 1000
+	chDoIndexArr := make(chan int64, templength)
+
+	for i := 0; i < templength; i++ {
+		go dotestRequest(client, &ctx1, chDoIndexArr)
+	}
+
+	for i := 0; i < templength; i++ {
+		temptime := <-chDoIndexArr
+
+		fmt.Println(temptime)
+	}
+
+}
+
+func dotestRequest(client *elastic.Client, ctx1 *context.Context, chData chan int64) {
+
+	oldNowTime := time.Now()
+	tQuery := elastic.NewTermQuery("TaskName", "NewProposal")
+	searchResult, err := client.Search().
+		Index("workflow_v3"). // search in index "twitter"
+		Type("Workflow").
+		Query(tQuery).     // specify the query
+		From(0).Size(500). // take documents 0-9
+		Pretty(true).      // pretty print requestand response JSON
+		Do(*ctx1)          // execute
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+
+	count := searchResult.TotalHits()
+	nowTime := time.Now()
+	fmt.Println(nowTime.Sub(oldNowTime))
+
+	chData <- count
+
 }
 
 func doImportByJSON() {
@@ -184,7 +233,9 @@ func doWorkNew(chData chan []string, chControlGoRoutine chan int, client *elasti
 			panic(err)
 		}
 
-		req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr))
+		docID := m[cConfig.IdField]
+
+		req := elastic.NewBulkIndexRequest().Index(cConfig.EsIndex).Type(cConfig.EsType).Doc(string(jsonStr)).Id(docID)
 		bulkService.Add(req)
 	}
 
