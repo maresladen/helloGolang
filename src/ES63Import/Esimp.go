@@ -43,15 +43,19 @@ type transferContent struct {
 	SrcURL  string `json:"srcURL"`
 	TarURL  string `json:"tarURL"`
 	Indexes []struct {
-		SrcIndex  string   `json:"srcIndex"`
-		TarIndex  string   `json:"tarIndex"`
-		SrcType   string   `json:"srcType"`
-		TarType   string   `json:"tarType"`
-		IDKey     string   `json:"idKey,omitempty"`
-		ParentKey string   `json:"parentKey,omitempty"`
-		TarModule string   `json:"tarModule,omitempty"`
-		JoinField string   `json:"joinField,omitempty"`
-		Columns   []string `json:"columns,omitempty"`
+		SrcIndex        string   `json:"srcIndex"`
+		TarIndex        string   `json:"tarIndex"`
+		SrcType         string   `json:"srcType"`
+		TarType         string   `json:"tarType"`
+		IDKey           string   `json:"idKey,omitempty"`
+		ParentKey       string   `json:"parentKey,omitempty"`
+		TarModule       string   `json:"tarModule,omitempty"`
+		JoinField       string   `json:"joinField,omitempty"`
+		Columns         []string `json:"columns,omitempty"`
+		ParseLongKey    []string `json:"parseLongKey,omitempty"`
+		ParseIntKey     []string `json:"parseIntKey,omitempty"`
+		ParseDicimalKey []string `json:"parseDicimalKey,omitempty"`
+		ParseStringKey  []string `json:"parseStringKey,omitempty"`
 	} `json:"indexes"`
 }
 
@@ -159,10 +163,23 @@ func EsDataTrans() {
 	}
 
 	for _, indexConfig := range tConfig.Indexes {
+		fmt.Println("--------------------")
+		fmt.Println(indexConfig.TarIndex)
+		fmt.Println(indexConfig.TarModule)
+		fmt.Println(indexConfig.JoinField)
+		fmt.Scanln(&exitsign)
 
-		svc := clientSrc.Scroll(indexConfig.SrcIndex).Type(indexConfig.SrcType).Size(5000)
+		af := elastic.NewBoolQuery()
+		tQuery := elastic.NewTermQuery("entity_type", indexConfig.TarModule)
+		// rQuery := elastic.NewRangeQuery("PolicyId").Gt(0)
+		// af.Must(rQuery)
+		af.Must(tQuery)
+
+		svc := clientSrc.Scroll(indexConfig.SrcIndex).Type(indexConfig.SrcType).Size(5000).Query(af)
 		bulkService := clientTar.Bulk()
+		importCount := 1
 		for {
+
 			res, err := svc.Do(ctx)
 			if err == io.EOF {
 				fmt.Println(indexConfig.SrcIndex+"-"+indexConfig.SrcType, " 内容跑完")
@@ -173,7 +190,9 @@ func EsDataTrans() {
 				fmt.Scanln(&exitsign)
 				panic(err)
 			}
-
+			importCount++
+			fmt.Println(importCount)
+			// fmt.Println(res.Hits.TotalHits)
 			for _, hit := range res.Hits.Hits {
 				j, err := json.Marshal(&hit.Source)
 				if err != nil {
@@ -195,29 +214,99 @@ func EsDataTrans() {
 						temp = make(map[string]interface{})
 						temp["name"] = indexConfig.TarModule
 
-						if hit.Parent != "" {
-							temp["parent"] = hit.Parent
+						if hit.Routing != hit.Id {
+							if hit.Routing != "" {
+								temp["parent"] = hit.Routing
+							} else {
+								temp["parent"] = "transVirtual"
+							}
 						} else {
 							if indexConfig.ParentKey != "" {
 								temp["parent"] = "transVirtual"
 							}
 						}
 
+						dat[indexConfig.JoinField] = temp
 						fData[indexConfig.JoinField] = temp
 					}
-					if indexConfig.Columns != nil {
 
+					//列过滤和转换逻辑
+					if indexConfig.Columns != nil {
 						for _, v := range indexConfig.Columns {
 							if val, ok := dat[v]; ok {
-								fData[v] = val
+								if val != nil {
+									fData[v] = val
+								}
 							}
 						}
 
+					} else {
+						fData = dat
+					}
+					if indexConfig.ParseLongKey != nil {
+						for _, v := range indexConfig.ParseLongKey {
+							if val, ok := dat[v]; ok {
+								if val != nil {
+									parseValue, err := strconv.ParseInt(val.(string), 0, 64)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
+					}
+					if indexConfig.ParseIntKey != nil {
+						for _, v := range indexConfig.ParseIntKey {
+							if val, ok := dat[v]; ok {
+
+								if val != nil {
+									parseValue, err := strconv.ParseInt(val.(string), 0, 32)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
+					}
+					if indexConfig.ParseDicimalKey != nil {
+						for _, v := range indexConfig.ParseDicimalKey {
+							if val, ok := dat[v]; ok {
+								if val != nil {
+									parseValue, err := strconv.ParseFloat(val.(string), 64)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
+					}
+					if indexConfig.ParseStringKey != nil {
+						for _, v := range indexConfig.ParseStringKey {
+							if val, ok := dat[v]; ok {
+								if val != nil {
+									switch val.(type) {
+									case int64:
+										fData[v] = strconv.FormatInt(val.(int64), 10)
+									case float64:
+										fData[v] = strconv.FormatFloat(val.(float64), 'f', -1, 64)
+									}
+								}
+							}
+						}
 					}
 				} else {
 					fmt.Println(err)
 					fmt.Scanln(&exitsign)
 				}
+
+				// fmt.Println(fData[indexConfig.JoinField])
+				// fmt.Scanln(&exitsign)
 
 				jsonStrTemp, err := json.Marshal(fData)
 				if err != nil {
@@ -225,10 +314,11 @@ func EsDataTrans() {
 					fmt.Scanln(&exitsign)
 				}
 				jsonStr = string(jsonStrTemp)
+				// fmt.Println(jsonStr)
 
 				req := elastic.NewBulkIndexRequest().Index(indexConfig.TarIndex).Type(indexConfig.TarType).Doc(jsonStr).Id(hit.Id)
-				if hit.Parent != "" {
-					req.Routing(hit.Parent)
+				if hit.Routing != "" {
+					req.Routing(hit.Routing)
 				} else {
 					if indexConfig.JoinField != "" {
 						if indexConfig.ParentKey != "" {
@@ -245,9 +335,17 @@ func EsDataTrans() {
 				fmt.Println(err)
 				fmt.Scanln(&exitsign)
 			} else if rep.Errors {
+				index := 0
 				for _, item := range rep.Items {
 					for _, v := range item {
+						index++
 						fmt.Println(v.Error.Reason)
+						if index >= 5 {
+							break
+						}
+					}
+					if index >= 5 {
+						break
 					}
 				}
 
@@ -331,6 +429,7 @@ func DownLoadData() {
 
 				if indexConfig.JoinField != "" {
 					var dat map[string]interface{}
+					var fData map[string]interface{}
 					err := json.Unmarshal(j, &dat)
 					if err == nil {
 						var temp map[string]string
@@ -344,13 +443,60 @@ func DownLoadData() {
 							}
 						}
 						dat[indexConfig.JoinField] = temp
+						//列过滤和转换逻辑
+						if indexConfig.Columns != nil {
+							for _, v := range indexConfig.Columns {
+								if val, ok := dat[v]; ok {
+									fData[v] = val
+								}
+							}
+
+						} else {
+							fData = dat
+						}
+						if indexConfig.ParseLongKey != nil {
+							for _, v := range indexConfig.ParseLongKey {
+								if val, ok := dat[v]; ok {
+									parseValue, err := strconv.ParseInt(val.(string), 0, 64)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
+						if indexConfig.ParseIntKey != nil {
+							for _, v := range indexConfig.ParseIntKey {
+								if val, ok := dat[v]; ok {
+									parseValue, err := strconv.ParseInt(val.(string), 0, 32)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
+						if indexConfig.ParseDicimalKey != nil {
+							for _, v := range indexConfig.ParseDicimalKey {
+								if val, ok := dat[v]; ok {
+									parseValue, err := strconv.ParseFloat(val.(string), 64)
+									if err != nil {
+										delete(fData, v)
+									} else {
+										fData[v] = parseValue
+									}
+								}
+							}
+						}
 
 					} else {
 						fmt.Println(err)
 						fmt.Scanln(&exitsign)
 					}
 
-					jsonStrTemp, _ := json.Marshal(dat)
+					jsonStrTemp, _ := json.Marshal(fData)
 					jsonStr = string(jsonStrTemp)
 
 					saveDoc += jsonStr + "\n"
